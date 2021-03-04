@@ -1,0 +1,28 @@
+{
+  "name": "time_script_generator",
+  "version": "1.0.0",
+  "description": "The generator of time_index_state_type_script and time_info_type_script",
+  "main": "index.js",
+  "repository": "https://github.com/duanyytop/ckb-time-scripts-generator",
+  "author": "eric.wang",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/index.js",
+    "lint": "eslint src/**/*.js --fix"
+  },
+  "dependencies": {
+    "@nervosnetwork/ckb-sdk-core": "^0.38.2",
+    "@nervosnetwork/ckb-sdk-utils": "^0.38.2",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "eslint": "^7.14.0",
+    "husky": "^4.3.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn lint"
+    }
+  }
+}
