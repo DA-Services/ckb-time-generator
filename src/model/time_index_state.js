@@ -24,7 +24,7 @@ class TimeIndexState {
 
   static fromData(data) {
     const temp = remove0x(data)
-    if (temp.length != 2) {
+    if (temp.length != 4) {
       throw new Error('Time info data length error')
     }
     return new TimeIndexState(parseInt(temp.substring(0, 2), 16))

@@ -1,18 +1,26 @@
-const { AlwaysSuccessDep, TimeIndexStateDep, TimeInfoDep, AlwaysSuccessLockScript } = require('../utils/config')
-const { ckb, FEE, TIME_CELL_CAPACITY, generateTimeIndexStateOutput, generateTimeInfoOutput } = require('./helper')
+const { serializeOutPoint } = require('@nervosnetwork/ckb-sdk-utils')
+const {
+  AlwaysSuccessDep,
+  AlwaysSuccessLockScript,
+  TimestampIndexStateDep,
+  TimestampInfoDep,
+  BlockNumberIndexStateDep,
+  BlockNumberInfoDep,
+} = require('../utils/config')
+const { generateTimeIndexStateOutput, generateTimeInfoOutput, getLatestBlockNumber } = require('./helper')
+const { ckb, FEE, TIME_CELL_CAPACITY } = require('../utils/const')
 const { getCells, collectInputs } = require('./rpc')
 const { TimeIndexState } = require('../model/time_index_state')
-const { serializeOutPoint } = require('@nervosnetwork/ckb-sdk-utils')
-const { TimeInfo } = require('../model/time_info')
+const { TimestampInfo, BlockNumberInfo } = require('../model/time_info')
 
-const createTimeCell = async () => {
-  const liveCells = await getCells(AlwaysSuccessLockScript, 'lock')
+const createTimeCell = async (isTimestamp = true) => {
+  const liveCells = await getCells(AlwaysSuccessLockScript, 'lock', { output_data_len_range: ['0x0', '0x1'] })
   const needCapacity = TIME_CELL_CAPACITY + TIME_CELL_CAPACITY + FEE
   const { inputs, capacity: inputCapacity } = collectInputs(liveCells, needCapacity, '0x0')
 
   const typeArgs = serializeOutPoint(inputs[0].previousOutput)
-  const timeIndexStateOutput = await generateTimeIndexStateOutput(typeArgs)
-  const timeInfoOutput = await generateTimeInfoOutput(typeArgs)
+  const timeIndexStateOutput = await generateTimeIndexStateOutput(typeArgs, isTimestamp)
+  const timeInfoOutput = await generateTimeInfoOutput(typeArgs, isTimestamp)
   let outputs = [timeIndexStateOutput, timeInfoOutput]
 
   if (inputCapacity > needCapacity) {
@@ -23,20 +31,34 @@ const createTimeCell = async () => {
   }
 
   const timeIndex = 0
-  const timestamp = Math.floor(new Date().getTime() / 1000)
+  let timeInfoData = '0x'
+  if (isTimestamp) {
+    const timestamp = Math.floor(new Date().getTime() / 1000)
+    timeInfoData = new TimestampInfo(timeIndex, timestamp).toString()
+  } else {
+    const tipBlockNumber = await getLatestBlockNumber()
+    timeInfoData = new BlockNumberInfo(timeIndex, tipBlockNumber).toString()
+  }
 
-  const cellDeps = [AlwaysSuccessDep, TimeIndexStateDep, TimeInfoDep]
+  let cellDeps = [AlwaysSuccessDep]
+  if (isTimestamp) {
+    cellDeps = cellDeps.concat([TimestampIndexStateDep, TimestampInfoDep])
+  } else {
+    cellDeps = cellDeps.concat([BlockNumberIndexStateDep, BlockNumberInfoDep])
+  }
+
   const rawTx = {
     version: '0x0',
     cellDeps,
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: [new TimeIndexState(timeIndex).toString(), new TimeInfo(timeIndex, timestamp).toString(), '0x'],
+    outputsData: [new TimeIndexState(timeIndex).toString(), timeInfoData, '0x'],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
+  console.log(JSON.stringify(rawTx))
   const txHash = await ckb.rpc.sendTransaction(rawTx)
-  console.info(`Creating time cell tx hash:${txHash} timeIndex:${timeIndex} timestamp:${timestamp}`)
+  console.info(`Creating time cell tx hash: ${txHash} timeInfoData: ${timeInfoData}`)
 }
 
 module.exports = {

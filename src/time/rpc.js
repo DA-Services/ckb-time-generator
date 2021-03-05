@@ -30,7 +30,6 @@ const getCells = async (script, type, filter) => {
       body,
     })
     res = await res.json()
-    console.log(JSON.stringify(script))
     return res.result.objects
   } catch (error) {
     console.error('error', error)

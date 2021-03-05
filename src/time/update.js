@@ -1,19 +1,25 @@
-const { getLatestTimestamp, ckb, FEE, generateTimeInfoOutput, generateTimeIndexStateOutput } = require('./helper')
+const { serializeOutPoint } = require('@nervosnetwork/ckb-sdk-utils')
+const { generateTimeIndexStateOutput, generateTimeInfoOutput, getLatestBlockNumber, getLatestTimestamp } = require('./helper')
+const { ckb, FEE, TIME_CELL_CAPACITY } = require('../utils/const')
 const { getCells, collectInputs } = require('./rpc')
 const {
   AlwaysSuccessLockScript,
   AlwaysSuccessDep,
-  TimeIndexStateDep,
-  TimeIndexStateTypeScript,
-  TimeInfoDep,
-  TimeInfoTypeScript,
+  TimestampIndexStateDep,
+  TimestampIndexStateTypeScript,
+  TimestampInfoDep,
+  TimestampInfoTypeScript,
+  BlockNumberIndexStateDep,
+  BlockNumberIndexStateTypeScript,
+  BlockNumberInfoDep,
+  BlockNumberInfoTypeScript,
 } = require('../utils/config')
 const { TimeIndexState } = require('../model/time_index_state')
-const { TimeInfo } = require('../model/time_info')
-const { uin32ToBe, remove0x } = require('../utils/hex')
+const { TimestampInfo, BlockNumberInfo } = require('../model/time_info')
+const { uint32ToBe, uint64ToBe, remove0x } = require('../utils/hex')
 
-const getTimeIndexStateCell = async () => {
-  const timeIndexStateCells = await getCells(TimeIndexStateTypeScript, 'type')
+const getTimeIndexStateCell = async isTimestamp => {
+  const timeIndexStateCells = await getCells(isTimestamp ? TimestampIndexStateTypeScript : BlockNumberIndexStateTypeScript, 'type')
   if (!timeIndexStateCells || timeIndexStateCells.length === 0) {
     return {
       timeIndexStateCell: null,
@@ -28,40 +34,39 @@ const getTimeIndexStateCell = async () => {
   return { timeIndexStateCell, timeIndexState }
 }
 
-const getTimeInfoCell = async timeIndex => {
-  let timeInfoCells = await getCells(TimeInfoTypeScript, 'type')
+const getTimeInfoCell = async (timeIndex, isTimestamp) => {
+  let timeInfoCells = await getCells(isTimestamp ? TimestampInfoTypeScript : BlockNumberInfoTypeScript, 'type')
   if (!timeInfoCells || timeInfoCells.length === 0) {
     return { timeInfoCell: null, timeInfo: null }
   }
   const infoCells = timeInfoCells.filter(cell => parseInt(remove0x(cell.output_data).slice(0, 2)) === timeIndex)
   if (infoCells.length === 0) {
-    throw new Error('Time info cell does not exist')
+    return { timeInfoCell: null, timeInfo: null }
   }
   const timeInfoCell = infoCells[0]
-  const timeInfo = TimeInfo.fromData(timeInfoCell.output_data)
+  const timeInfo = isTimestamp ? TimestampInfo.fromData(timeInfoCell.output_data) : BlockNumberInfo.fromData(timeInfoCell.output_data)
   return { timeInfoCell, timeInfo }
 }
 
-const generateTimeInfoSince = timestamp => {
-  return `0x40000000${uin32ToBe(timestamp)}`
+const generateTimestampInfoSince = timestamp => {
+  return `0x40000000${uint32ToBe(timestamp)}`
 }
 
-const updateTimeCell = async () => {
-  const { timeIndexStateCell, timeIndexState } = await getTimeIndexStateCell()
+const generateBlockNumberInfoSince = blockNumber => {
+  return `0x${blockNumber.toString(16)}`
+}
+
+const updateTimeCell = async isTimestamp => {
+  const { timeIndexStateCell, timeIndexState } = await getTimeIndexStateCell(isTimestamp)
   const nextTimeIndexState = timeIndexState.increaseIndex()
 
-  const { timeInfoCell: preTimeInfoCell } = await getTimeInfoCell(nextTimeIndexState.getTimeIndex())
+  const { timeInfoCell: nextTimeInfoCell } = await getTimeInfoCell(nextTimeIndexState.getTimeIndex(), isTimestamp)
 
-  const timeIndexStateCapacity = BigInt(parseInt(timeIndexStateCell.output.capacity.substr(2), 16))
-
-  const timeInfoCapacity = preTimeInfoCell
-    ? BigInt(parseInt(preTimeInfoCell.output.capacity.substr(2), 16))
-    : TIME_INFO_CELL_CAPACITY
-
-  const liveCells = await getCells(AlwaysSuccessLockScript, 'lock')
-  const needCapacity = (preTimeInfoCell ? BigInt(0) : TIME_INFO_CELL_CAPACITY) + FEE
+  const liveCells = await getCells(AlwaysSuccessLockScript, 'lock', { output_data_len_range: ['0x0', '0x1'] })
+  const needCapacity = (nextTimeInfoCell ? BigInt(0) : TIME_CELL_CAPACITY) + FEE
   const { inputs, capacity } = collectInputs(liveCells, needCapacity, '0x0')
   const nextTimestamp = await getLatestTimestamp()
+  const nextBlockNumber = await getLatestBlockNumber()
 
   inputs.push({
     previousOutput: {
@@ -70,18 +75,19 @@ const updateTimeCell = async () => {
     },
     since: '0x0',
   })
-  if (preTimeInfoCell) {
+  if (nextTimeInfoCell) {
     inputs.push({
       previousOutput: {
-        txHash: preTimeInfoCell.out_point.tx_hash,
-        index: preTimeInfoCell.out_point.index,
+        txHash: nextTimeInfoCell.out_point.tx_hash,
+        index: nextTimeInfoCell.out_point.index,
       },
-      since: generateTimeInfoSince(nextTimestamp),
+      since: isTimestamp ? generateTimestampInfoSince(nextTimestamp) : generateBlockNumberInfoSince(nextBlockNumber),
     })
   }
+
   let outputs = [
-    await generateTimeIndexStateOutput(timeIndexStateCell.output.type.args, timeIndexStateCapacity),
-    await generateTimeInfoOutput(timeIndexStateCell.output.type.args, timeInfoCapacity),
+    await generateTimeIndexStateOutput(timeIndexStateCell.output.type.args, isTimestamp),
+    await generateTimeInfoOutput(timeIndexStateCell.output.type.args, isTimestamp),
   ]
 
   if (capacity > needCapacity) {
@@ -91,8 +97,14 @@ const updateTimeCell = async () => {
     })
   }
 
-  const nextTimeInfo = new TimeInfo(nextTimestamp, nextTimeIndexState.getTimeIndex())
-  const cellDeps = [AlwaysSuccessDep, TimeIndexStateDep, TimeInfoDep]
+  const nextTimeIndex = nextTimeIndexState.getTimeIndex()
+  const nextTimeInfo = isTimestamp ? new TimestampInfo(nextTimeIndex, nextTimestamp) : new BlockNumberInfo(nextTimeIndex, nextBlockNumber)
+  let cellDeps = [AlwaysSuccessDep]
+  if (isTimestamp) {
+    cellDeps = cellDeps.concat([TimestampIndexStateDep, TimestampInfoDep])
+  } else {
+    cellDeps = cellDeps.concat([BlockNumberIndexStateDep, BlockNumberInfoDep])
+  }
   const rawTx = {
     version: '0x0',
     cellDeps,
@@ -102,8 +114,9 @@ const updateTimeCell = async () => {
     outputsData: [nextTimeIndexState.toString(), nextTimeInfo.toString(), '0x'],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
+  console.log(JSON.stringify(rawTx))
   const txHash = await ckb.rpc.sendTransaction(rawTx)
-  console.log(`Update time cell tx hash:${txHash} timeIndex:${nextTimeInfo.getTimeIndex()} timestamp:${nextTimestamp}`)
+  console.log(`Update time cell tx hash: ${txHash} nextTimeInfo: ${nextTimeInfo.toString()}`)
 }
 
 module.exports = {

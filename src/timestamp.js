@@ -1,19 +1,20 @@
 const { createTimeCell } = require('./time/create')
 const { updateTimeCell, getTimeIndexStateCell, getTimeInfoCell } = require('./time/update')
-const { TIME_INFO_UPDATE_INTERVAL } = require('./utils/config')
 const { getLatestTimestamp } = require('./time/helper')
 
-const startTimeServer = async () => {
-  const { timeIndexStateCell, timeIndexState } = await getTimeIndexStateCell()
+const TIME_INFO_UPDATE_INTERVAL = 60
+
+const startTimestampServer = async () => {
+  const { timeIndexStateCell, timeIndexState } = await getTimeIndexStateCell(true)
   if (!timeIndexStateCell) {
-    await createTimeCell()
-    setTimeout(startUpdateTimeInfoCell, TIME_INFO_UPDATE_INTERVAL * 1000)
+    await createTimeCell(true)
+    setTimeout(updateTimeInfoCell, TIME_INFO_UPDATE_INTERVAL * 1000)
     return
   }
 
-  const { timeInfo } = await getTimeInfoCell(timeIndexState.getTimeIndex())
+  const { timeInfo } = await getTimeInfoCell(timeIndexState.getTimeIndex(), true)
   const nextUpdateTime = getNextUpdateTime(timeInfo.getTimestamp())
-  setTimeout(startUpdateTimeInfoCell, nextUpdateTime)
+  setTimeout(updateTimeInfoCell, nextUpdateTime)
 }
 
 const getNextUpdateTime = currentTime => {
@@ -25,14 +26,14 @@ const getNextUpdateTime = currentTime => {
   return nextUpdateTime * 1000
 }
 
-const startUpdateTimeInfoCell = async () => {
+const updateTimeInfoCell = async () => {
   try {
-    await updateTimeCell()
-    setTimeout(startUpdateTimeInfoCell, TIME_INFO_UPDATE_INTERVAL * 1000)
+    await updateTimeCell(true)
+    setTimeout(updateTimeInfoCell, TIME_INFO_UPDATE_INTERVAL * 1000)
   } catch (err) {
     console.error(err)
-    setTimeout(startUpdateTimeInfoCell, (TIME_INFO_UPDATE_INTERVAL / 2) * 1000)
+    setTimeout(updateTimeInfoCell, (TIME_INFO_UPDATE_INTERVAL / 2) * 1000)
   }
 }
 
-startTimeServer()
+startTimestampServer()

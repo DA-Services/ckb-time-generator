@@ -10,14 +10,14 @@ const ArrayBufferToHex = arrayBuffer => {
 }
 
 const uint64ToBe = u64 => {
-  const valLeft = `0x${u64.slice(0, 8)}`
-  const valRight = `0x${u64.slice(8)}`
-  const viewLeft = uin32ToBe(valLeft).slice(2)
-  const viewRight = uin32ToBe(valRight).slice(2)
-  return `0x${viewLeft}${viewRight}`
+  if (typeof u64 !== 'bigint') {
+    throw new Error('u64 must be bigint')
+  }
+  const val = remove0x(u64.toString(16))
+  return `${'0'.repeat(16 - val.length)}${val}`
 }
 
-const uin32ToBe = u32 => {
+const uint32ToBe = u32 => {
   let buffer = new ArrayBuffer(4)
   let view = new DataView(buffer)
   view.setUint32(0, u32, false)
@@ -33,7 +33,7 @@ const uint8ToHex = u8 => {
 
 module.exports = {
   uint8ToHex,
-  uin32ToBe,
+  uint32ToBe,
   uint64ToBe,
   remove0x,
 }
