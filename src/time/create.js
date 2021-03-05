@@ -56,7 +56,6 @@ const createTimeCell = async (isTimestamp = true) => {
     outputsData: [new TimeIndexState(timeIndex).toString(), timeInfoData, '0x'],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
-  console.log(JSON.stringify(rawTx))
   const txHash = await ckb.rpc.sendTransaction(rawTx)
   console.info(`Creating time cell tx hash: ${txHash} timeInfoData: ${timeInfoData}`)
 }

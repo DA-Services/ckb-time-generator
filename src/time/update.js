@@ -114,7 +114,6 @@ const updateTimeCell = async isTimestamp => {
     outputsData: [nextTimeIndexState.toString(), nextTimeInfo.toString(), '0x'],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
-  console.log(JSON.stringify(rawTx))
   const txHash = await ckb.rpc.sendTransaction(rawTx)
   console.log(`Update time cell tx hash: ${txHash} nextTimeInfo: ${nextTimeInfo.toString()}`)
 }
