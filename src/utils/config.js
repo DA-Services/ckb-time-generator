@@ -3,12 +3,12 @@ require('dotenv').config()
 const CKB_NODE_RPC = process.env.CKB_NODE_RPC || 'http://localhost:8114'
 const CKB_NODE_INDEXER = process.env.CKB_NODE_INDEXER || 'http://localhost:8116'
 const CKB_WS_URL = process.env.CKB_WS_URL || 'ws://localhost:8118'
+const ALWAYS_SUCCESS_TYPE_ARGS = process.env.ALWAYS_SUCCESS_TYPE_ARGS || '0x'
 
-// address: ckt1qt2g8yj3vrjzx2evk20szt5rszmmvykhrn6w0xv3ga4khnmpqu6lvuqp5us
 const AlwaysSuccessLockScript = {
   codeHash: '0xd483925160e4232b2cb29f012e8380b7b612d71cf4e79991476b6bcf610735f6',
   hashType: 'data',
-  args: '0x',
+  args: ALWAYS_SUCCESS_TYPE_ARGS,
 }
 
 const AlwaysSuccessDep = {
