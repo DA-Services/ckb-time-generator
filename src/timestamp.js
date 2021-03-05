@@ -1,38 +1,38 @@
+const WebSocket = require('ws')
 const { createTimeCell } = require('./time/create')
-const { updateTimeCell, getTimeIndexStateCell, getTimeInfoCell } = require('./time/update')
-const { getLatestTimestamp } = require('./time/helper')
-
-const TIME_INFO_UPDATE_INTERVAL = 60
+const { updateTimeCell, getTimeIndexStateCell } = require('./time/update')
+const { CKB_WS_URL } = require('./utils/config')
 
 const startTimestampServer = async () => {
-  const { timeIndexStateCell, timeIndexState } = await getTimeIndexStateCell(true)
+  let ws = new WebSocket(CKB_WS_URL)
+
+  ws.on('open', function open() {
+    ws.send('{"id": 2, "jsonrpc": "2.0", "method": "subscribe", "params": ["new_tip_header"]}')
+  })
+
+  ws.on('message', async function incoming(data) {
+    if (JSON.parse(data).params) {
+      const tipNumber = JSON.parse(JSON.parse(data).params.result).number
+      console.info('New Block', tipNumber)
+      if (parseInt(tipNumber, 16) % 4 === 0) {
+        await createOrUpdateTimeInfoCell()
+      }
+    }
+  })
+
+  ws.on('close', async function close(code, reason) {
+    console.info('Websocket Close', code, reason)
+    await createOrUpdateTimeInfoCell()
+    startTimestampServer()
+  })
+}
+
+const createOrUpdateTimeInfoCell = async () => {
+  const { timeIndexStateCell } = await getTimeIndexStateCell(true)
   if (!timeIndexStateCell) {
     await createTimeCell(true)
-    setTimeout(updateTimeInfoCell, TIME_INFO_UPDATE_INTERVAL * 1000)
-    return
-  }
-
-  const { timeInfo } = await getTimeInfoCell(timeIndexState.getTimeIndex(), true)
-  const nextUpdateTime = getNextUpdateTime(timeInfo.getTimestamp())
-  setTimeout(updateTimeInfoCell, nextUpdateTime)
-}
-
-const getNextUpdateTime = currentTime => {
-  if (currentTime === 0) {
-    return TIME_INFO_UPDATE_INTERVAL * 1000
-  }
-  let nextUpdateTime = currentTime + TIME_INFO_UPDATE_INTERVAL - getLatestTimestamp()
-  nextUpdateTime = nextUpdateTime < 0 ? 0 : nextUpdateTime
-  return nextUpdateTime * 1000
-}
-
-const updateTimeInfoCell = async () => {
-  try {
+  } else {
     await updateTimeCell(true)
-    setTimeout(updateTimeInfoCell, TIME_INFO_UPDATE_INTERVAL * 1000)
-  } catch (err) {
-    console.error(err)
-    setTimeout(updateTimeInfoCell, (TIME_INFO_UPDATE_INTERVAL / 2) * 1000)
   }
 }
 

@@ -1,4 +1,3 @@
-const { serializeOutPoint } = require('@nervosnetwork/ckb-sdk-utils')
 const { generateTimeIndexStateOutput, generateTimeInfoOutput, getLatestBlockNumber, getLatestTimestamp } = require('./helper')
 const { ckb, FEE, TIME_CELL_CAPACITY } = require('../utils/const')
 const { getCells, collectInputs } = require('./rpc')
@@ -16,7 +15,7 @@ const {
 } = require('../utils/config')
 const { TimeIndexState } = require('../model/time_index_state')
 const { TimestampInfo, BlockNumberInfo } = require('../model/time_info')
-const { uint32ToBe, uint64ToBe, remove0x } = require('../utils/hex')
+const { uint32ToBe, remove0x } = require('../utils/hex')
 
 const getTimeIndexStateCell = async isTimestamp => {
   const timeIndexStateCells = await getCells(isTimestamp ? TimestampIndexStateTypeScript : BlockNumberIndexStateTypeScript, 'type')
