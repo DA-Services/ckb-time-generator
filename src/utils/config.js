@@ -28,13 +28,13 @@ const TimestampIndexStateDep = {
 }
 
 const TimestampInfoTypeScript = {
-  codeHash: '0x234ad0fdf1cd271d421eb0f4b18b6b62f540bf8f0e858e234aa8656888dab8d1',
+  codeHash: '0xe4fd6f46ab1fd3d5b377df9e2d4ea77e3b52f53ac3319595bb38d097ea051cfd',
   hashType: 'type',
   args: '0x',
 }
 
 const TimestampInfoDep = {
-  outPoint: { txHash: '0xf3c13ffbaa1d34b8fac6cd848fa04db2e6b4e2c967c3c178295be2e7cdd77164', index: '0x0' },
+  outPoint: { txHash: '0xcd010a6064892a038556713ba254c73a193b361d782bf436ffd6ee4720689eb0', index: '0x0' },
   depType: 'code',
 }
 
@@ -50,13 +50,13 @@ const BlockNumberIndexStateDep = {
 }
 
 const BlockNumberInfoTypeScript = {
-  codeHash: '0x9e609ff599d702c3574c2f4e9ef5a1a995d87612a1fa600bc55f11c199746894',
+  codeHash: '0x5f6a4cc2cd6369dbcf38ddfbc4323cf4695c2e8c20aed572b5db6adc2faf9d50',
   hashType: 'type',
   args: '0x',
 }
 
 const BlockNumberInfoDep = {
-  outPoint: { txHash: '0x711bb5cec27b3a5c00da3a6dc0772be8651f7f92fd9bf09d77578b29227c1748', index: '0x0' },
+  outPoint: { txHash: '0x70bfc41d9bfb779e5288fbfe10b12a98f1832c4759bd2b56d26bbe0387be0b14', index: '0x0' },
   depType: 'code',
 }
 
