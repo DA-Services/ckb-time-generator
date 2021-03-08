@@ -38,7 +38,7 @@ const getTimeInfoCell = async (timeIndex, isTimestamp) => {
   if (!timeInfoCells || timeInfoCells.length === 0) {
     return { timeInfoCell: null, timeInfo: null }
   }
-  const infoCells = timeInfoCells.filter(cell => parseInt(remove0x(cell.output_data).slice(0, 2)) === timeIndex)
+  const infoCells = timeInfoCells.filter(cell => parseInt(remove0x(cell.output_data).slice(0, 2), 16) === timeIndex)
   if (infoCells.length === 0) {
     return { timeInfoCell: null, timeInfo: null }
   }
