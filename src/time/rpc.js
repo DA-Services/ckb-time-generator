@@ -17,7 +17,7 @@ const getCells = async (script, type, filter) => {
         filter: filter,
       },
       'asc',
-      '0x64',
+      '0x200',
     ],
   }
   const body = JSON.stringify(payload, null, '  ')
