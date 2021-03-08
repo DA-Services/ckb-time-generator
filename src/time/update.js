@@ -62,6 +62,7 @@ const updateTimeCell = async isTimestamp => {
   const { timeInfoCell: nextTimeInfoCell } = await getTimeInfoCell(nextTimeIndexState.getTimeIndex(), isTimestamp)
 
   const liveCells = await getCells(AlwaysSuccessLockScript, 'lock', { output_data_len_range: ['0x0', '0x1'] })
+
   const needCapacity = (nextTimeInfoCell ? BigInt(0) : TIME_CELL_CAPACITY) + FEE
   const { inputs, capacity } = collectInputs(liveCells, needCapacity, '0x0')
   const nextTimestamp = await getLatestTimestamp()

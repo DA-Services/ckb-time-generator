@@ -14,7 +14,7 @@ const startTimestampServer = async () => {
     if (JSON.parse(data).params) {
       const tipNumber = JSON.parse(JSON.parse(data).params.result).number
       console.info('New Block', tipNumber)
-      if (parseInt(tipNumber, 16) % 4 === 0) {
+      if (parseInt(tipNumber, 16) % 3 === 0) {
         await createOrUpdateTimeInfoCell()
       }
     }
