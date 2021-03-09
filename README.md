@@ -25,3 +25,9 @@ yarn install
 ```shell
 yarn start
 ```
+
+### Information on Aggron
+
+The time info type script of timestamp and block number on Aggron can be found [wiki#type-script](https://github.com/duanyytop/ckb-time-generator/wiki/Time-info-type-script-on-Aggron).
+
+The transactions of timestamp and block number on Aggron can be found [wiki#transactions](https://github.com/duanyytop/ckb-time-generator/wiki/Time-info-transctions-on-Aggron).
