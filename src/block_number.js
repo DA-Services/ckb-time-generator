@@ -1,6 +1,7 @@
 const WebSocket = require('ws')
 const { createTimeCell } = require('./time/create')
-const { updateTimeCell, getTimeIndexStateCell } = require('./time/update')
+const { updateTimeCell } = require('./time/update')
+const { getTimeIndexStateCell } = require('./time/helper')
 const { CKB_WS_URL } = require('./utils/config')
 
 const startBlockNumberServer = async () => {
