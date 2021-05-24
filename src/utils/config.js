@@ -50,13 +50,13 @@ const BlockNumberIndexStateDep = {
 }
 
 const BlockNumberInfoTypeScript = {
-  codeHash: '0x212dfa132279685e5d6faef8c1069c8d46d1f1d63f3e0a9ddbd7efc962e968a4',
+  codeHash: '0x7a6db6793ecf341f8f5289bc164d4a417c5adb99ab86a750230d7d14e73768e7',
   hashType: 'type',
   args: '0x',
 }
 
 const BlockNumberInfoDep = {
-  outPoint: { txHash: '0xfee800f26400f6280efe85e1884e88554d55c4f9c2598aa67b47a00baee63647', index: '0x0' },
+  outPoint: { txHash: '0x1bc39fc942746cf961f338c33626bfea999c96eb06334541859426580643fd51', index: '0x0' },
   depType: 'code',
 }
 
