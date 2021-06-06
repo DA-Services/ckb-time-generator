@@ -8,7 +8,7 @@ const ALWAYS_SUCCESS_TYPE_ARGS = process.env.ALWAYS_SUCCESS_TYPE_ARGS || '0x'
 const AlwaysSuccessLockScript = {
   codeHash: '0xd483925160e4232b2cb29f012e8380b7b612d71cf4e79991476b6bcf610735f6',
   hashType: 'data',
-  args: '0x26932ea8f30d9812396e0b4a541379ef3e1a2f97',
+  args: ALWAYS_SUCCESS_TYPE_ARGS,
 }
 
 const AlwaysSuccessDep = {
@@ -17,46 +17,46 @@ const AlwaysSuccessDep = {
 }
 
 const TimestampIndexStateTypeScript = {
-  codeHash: '0x3e0391edb163f72aa2982aa34ab44ab17ad96304acb824c944458c8f27f5542f',
+  codeHash: '0x57084ccd1e68f78a3b3477df67557049620aa5a5e0ad35239c82f3313865d997',
   hashType: 'type',
   args: '0x',
 }
 
 const TimestampIndexStateDep = {
-  outPoint: { txHash: '0x3a161f18adb54c6fb9b0fabf826ceaaa029d2707b62156f8415476f7aa71f45f', index: '0x0' },
+  outPoint: { txHash: '0x9a58067d1c4fadca2577be74d95add7fd3f19dad13b1017837984ecd4fff641d', index: '0x0' },
   depType: 'code',
 }
 
 const TimestampInfoTypeScript = {
-  codeHash: '0xd78423449320291c41adcce741276c47df1dbb0bca212d0017db66297be88f19',
+  codeHash: '0xe4fd6f46ab1fd3d5b377df9e2d4ea77e3b52f53ac3319595bb38d097ea051cfd',
   hashType: 'type',
   args: '0x',
 }
 
 const TimestampInfoDep = {
-  outPoint: { txHash: '0xc0f2b262c8dbd5c8da3376cf81f3d3c69582fefcc3eba36e88f708c1a4d505fe', index: '0x0' },
+  outPoint: { txHash: '0xcd010a6064892a038556713ba254c73a193b361d782bf436ffd6ee4720689eb0', index: '0x0' },
   depType: 'code',
 }
 
 const BlockNumberIndexStateTypeScript = {
-  codeHash: '0x76c781c3b8d9ed0b69726dded5bb7d063d6f7d70dc0b495d87c475cbad9165e1',
+  codeHash: '0x6cc39193430aa80afc3daf728e7959acddc7e8fec96e95cc9c63c85f738c1b8f',
   hashType: 'type',
   args: '0x',
 }
 
 const BlockNumberIndexStateDep = {
-  outPoint: { txHash: '0xcb9b40b606b0e2382f2008a47e807b60d2ff262ea9df7502ca009feb72ded923', index: '0x0' },
+  outPoint: { txHash: '0x2f64766b60b21d574a79be958a6e2af97ddb8c9daf426e2736d6926fd8ea8922', index: '0x0' },
   depType: 'code',
 }
 
 const BlockNumberInfoTypeScript = {
-  codeHash: '0x7a6db6793ecf341f8f5289bc164d4a417c5adb99ab86a750230d7d14e73768e7',
+  codeHash: '0x5f6a4cc2cd6369dbcf38ddfbc4323cf4695c2e8c20aed572b5db6adc2faf9d50',
   hashType: 'type',
   args: '0x',
 }
 
 const BlockNumberInfoDep = {
-  outPoint: { txHash: '0x1bc39fc942746cf961f338c33626bfea999c96eb06334541859426580643fd51', index: '0x0' },
+  outPoint: { txHash: '0x70bfc41d9bfb779e5288fbfe10b12a98f1832c4759bd2b56d26bbe0387be0b14', index: '0x0' },
   depType: 'code',
 }
 
