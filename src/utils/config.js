@@ -8,7 +8,7 @@ const ALWAYS_SUCCESS_TYPE_ARGS = process.env.ALWAYS_SUCCESS_TYPE_ARGS || '0x'
 const AlwaysSuccessLockScript = {
   codeHash: '0xd483925160e4232b2cb29f012e8380b7b612d71cf4e79991476b6bcf610735f6',
   hashType: 'data',
-  args: '0xcd908f152e1254824b673a35c7d4306e7b7fc31c',
+  args: '0x26932ea8f30d9812396e0b4a541379ef3e1a2f97',
 }
 
 const AlwaysSuccessDep = {
