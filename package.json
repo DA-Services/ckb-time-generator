@@ -14,6 +14,7 @@
   "dependencies": {
     "@nervosnetwork/ckb-sdk-core": "^0.38.2",
     "@nervosnetwork/ckb-sdk-utils": "^0.38.2",
+    "config": "^3.3.6",
     "node-fetch": "^2.6.1",
     "ws": "^7.3.1"
   },
