@@ -1,8 +1,8 @@
-const WebSocket = require('ws')
-const { createTimeCell } = require('./time/create')
-const { updateTimeCell } = require('./time/update')
-const { getTimeIndexStateCell } = require('./time/helper')
-const { CKB_WS_URL } = require('./utils/config')
+import WebSocket from 'ws'
+import { createTimeCell } from './time/create'
+import { updateTimeCell } from './time/update'
+import { getTimeIndexStateCell } from './time/helper'
+import { CKB_WS_URL } from './utils/config'
 
 const startTimestampServer = async () => {
   let ws = new WebSocket(CKB_WS_URL)

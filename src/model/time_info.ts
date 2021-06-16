@@ -1,6 +1,9 @@
-const { uint8ToHex, uint32ToBe, uint64ToBe, remove0x } = require('../utils/hex')
+import { remove0x, uint32ToBe, uint64ToBe, uint8ToHex } from '../utils/hex'
 
-class TimestampInfo {
+export class TimestampInfo {
+  private readonly index: number
+  private readonly timestamp: number
+
   constructor(index, timestamp) {
     this.index = index
     this.timestamp = timestamp
@@ -28,7 +31,10 @@ class TimestampInfo {
   }
 }
 
-class BlockNumberInfo {
+export class BlockNumberInfo {
+  private readonly index: number
+  private readonly blockNumber: number
+
   constructor(index, blockNumber) {
     this.index = index
     this.blockNumber = blockNumber
@@ -54,9 +60,4 @@ class BlockNumberInfo {
     }
     return new BlockNumberInfo(parseInt(temp.substring(0, 2), 16), BigInt(`0x${temp.substring(2, 18)}`))
   }
-}
-
-module.exports = {
-  TimestampInfo,
-  BlockNumberInfo,
 }

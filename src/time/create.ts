@@ -1,19 +1,20 @@
-const { serializeOutPoint } = require('@nervosnetwork/ckb-sdk-utils')
-const {
+import { serializeOutPoint } from '@nervosnetwork/ckb-sdk-utils'
+import {
   AlwaysSuccessDep,
   AlwaysSuccessLockScript,
   TimestampIndexStateDep,
   TimestampInfoDep,
   BlockNumberIndexStateDep,
   BlockNumberInfoDep,
-} = require('../utils/config')
-const { generateTimeIndexStateOutput, generateTimeInfoOutput, getLatestBlockNumber } = require('./helper')
-const { ckb, FEE, TIME_CELL_CAPACITY } = require('../utils/const')
-const { getCells, collectInputs } = require('./rpc')
-const { TimeIndexState } = require('../model/time_index_state')
-const { TimestampInfo, BlockNumberInfo } = require('../model/time_info')
+} from '../utils/config'
 
-const createTimeCell = async (isTimestamp = true) => {
+const { generateTimeIndexStateOutput, generateTimeInfoOutput, getLatestBlockNumber } = require('./helper')
+import { ckb, FEE, TIME_CELL_CAPACITY } from '../utils/const'
+import { getCells, collectInputs } from './rpc'
+import { TimeIndexState } from '../model/time_index_state'
+import { TimestampInfo, BlockNumberInfo } from '../model/time_info'
+
+export const createTimeCell = async (isTimestamp = true) => {
   const liveCells = await getCells(AlwaysSuccessLockScript, 'lock', { output_data_len_range: ['0x0', '0x1'] })
   const needCapacity = TIME_CELL_CAPACITY + TIME_CELL_CAPACITY + FEE
   const { inputs, capacity: inputCapacity } = collectInputs(liveCells, needCapacity, '0x0')
@@ -54,12 +55,9 @@ const createTimeCell = async (isTimestamp = true) => {
     inputs,
     outputs,
     outputsData: [new TimeIndexState(timeIndex).toString(), timeInfoData, '0x'],
+    witnesses: [],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
   const txHash = await ckb.rpc.sendTransaction(rawTx)
   console.info(`Creating time cell tx hash: ${txHash} timeInfoData: ${timeInfoData}`)
-}
-
-module.exports = {
-  createTimeCell,
 }

@@ -1,18 +1,26 @@
-const { generateTimeIndexStateOutput, generateTimeInfoOutput, getLatestBlockNumber, getLatestTimestamp } = require('./helper')
-const { ckb, FEE, TIME_CELL_CAPACITY } = require('../utils/const')
-const { getCells, collectInputs } = require('./rpc')
-const {
+import {
+  generateBlockNumberInfoSince,
+  generateTimeIndexStateOutput,
+  generateTimeInfoOutput,
+  generateTimestampInfoSince,
+  getLatestBlockNumber,
+  getLatestTimestamp,
+  getTimeIndexStateCell,
+  getTimeInfoCell,
+} from './helper'
+import { ckb, FEE, TIME_CELL_CAPACITY } from '../utils/const'
+import { getCells, collectInputs } from './rpc'
+import {
   AlwaysSuccessLockScript,
   AlwaysSuccessDep,
   TimestampIndexStateDep,
   TimestampInfoDep,
   BlockNumberIndexStateDep,
   BlockNumberInfoDep,
-} = require('../utils/config')
-const { TimestampInfo, BlockNumberInfo } = require('../model/time_info')
-const { getTimeIndexStateCell, getTimeInfoCell, generateTimestampInfoSince, generateBlockNumberInfoSince } = require('./helper')
+} from '../utils/config'
+import { TimestampInfo, BlockNumberInfo } from '../model/time_info'
 
-const updateTimeCell = async isTimestamp => {
+export const updateTimeCell = async isTimestamp => {
   const { timeIndexStateCell, timeIndexState } = await getTimeIndexStateCell(isTimestamp)
   const nextTimeIndexState = timeIndexState.increaseIndex()
 
@@ -51,6 +59,7 @@ const updateTimeCell = async isTimestamp => {
     outputs.push({
       capacity: `0x${(capacity - needCapacity).toString(16)}`,
       lock: AlwaysSuccessLockScript,
+      type: undefined // todo: what should be filled here?
     })
   }
 
@@ -69,12 +78,9 @@ const updateTimeCell = async isTimestamp => {
     inputs,
     outputs,
     outputsData: [nextTimeIndexState.toString(), nextTimeInfo.toString(), '0x'],
+    witnesses: [],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
   const txHash = await ckb.rpc.sendTransaction(rawTx)
   console.log(`Update time cell tx hash: ${txHash} nextTimeInfo: ${nextTimeInfo.toString()}`)
-}
-
-module.exports = {
-  updateTimeCell,
 }

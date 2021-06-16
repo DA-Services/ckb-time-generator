@@ -1,7 +1,9 @@
-const { remove0x } = require('../utils/hex')
+import { remove0x } from '../utils/hex'
 const SUM_OF_TIME_INFO_CELLS = 12
 
-class TimeIndexState {
+export class TimeIndexState {
+  private index: number
+
   constructor(index) {
     this.index = index
   }
@@ -29,8 +31,4 @@ class TimeIndexState {
     }
     return new TimeIndexState(parseInt(temp.substring(0, 2), 16))
   }
-}
-
-module.exports = {
-  TimeIndexState,
 }

@@ -1,7 +1,7 @@
-const fetch = require('node-fetch')
-const { CKB_NODE_INDEXER } = require('../utils/config')
+import fetch from 'node-fetch'
+import { CKB_NODE_INDEXER } from '../utils/config'
 
-const getCells = async (script, type, filter) => {
+export const getCells = async (script, type, filter?) => {
   let payload = {
     id: 1,
     jsonrpc: '2.0',
@@ -36,7 +36,7 @@ const getCells = async (script, type, filter) => {
   }
 }
 
-const collectInputs = (liveCells, needCapacity, since) => {
+export const collectInputs = (liveCells, needCapacity, since) => {
   let inputs = []
   let sum = BigInt(0)
   for (let cell of liveCells) {
@@ -56,9 +56,4 @@ const collectInputs = (liveCells, needCapacity, since) => {
     throw Error('Capacity not enough')
   }
   return { inputs, capacity: sum }
-}
-
-module.exports = {
-  getCells,
-  collectInputs,
 }
