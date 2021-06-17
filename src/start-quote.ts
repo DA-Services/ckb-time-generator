@@ -1,3 +1,4 @@
+process.env.HOSTNAME = 'quote'
 import fetch from 'node-fetch'
 import { createCells } from './logic/create'
 import { updateCell } from './logic/update'
@@ -8,8 +9,10 @@ async function createOrUpdateNumeralInfoCell () {
   const {indexStateCell} = await getIndexStateCell()
 
   if (!indexStateCell) {
+    console.log('Create Cells Quote')
     await createCells(BigInt(await getCkbPrice()))
   } else {
+    console.log('Update Cells Quote')
     await updateCell(await getCkbPrice())
   }
 }

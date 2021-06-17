@@ -7,7 +7,6 @@ The generator of [ckb-time-scripts](https://github.com/nervina-labs/ckb-time-scr
 ```shell
 git clone https://github.com/duanyytop/ckb-time-generator.git
 cd ckb-time-generator
-mv .env.example .env
 ```
 
 - Edit .env file

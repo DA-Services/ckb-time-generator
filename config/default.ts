@@ -1,15 +1,16 @@
-const ALWAYS_SUCCESS_TYPE_ARGS = process.env.ALWAYS_SUCCESS_TYPE_ARGS || '0x'
-
 const AlwaysSuccessLockScript = {
   codeHash: '0xd483925160e4232b2cb29f012e8380b7b612d71cf4e79991476b6bcf610735f6',
   hashType: 'data',
-  args: ALWAYS_SUCCESS_TYPE_ARGS,
+  args: '0x',
 }
 
 const PayersLockScript = AlwaysSuccessLockScript
 
 const AlwaysSuccessDep = {
-  outPoint: { txHash: '0x6cb20b88912311e6bba89a5fcfc53cfebcc39b99c3cce0796ce3e485a5d47011', index: '0x0' },
+  outPoint: {
+    txHash: '0x6cb20b88912311e6bba89a5fcfc53cfebcc39b99c3cce0796ce3e485a5d47011',
+    index: '0x0'
+  },
   depType: 'code',
 }
 
@@ -19,18 +20,18 @@ const IndexStateTypeScript = {
   args: '0x',
 }
 
-const TimestampIndexStateDep = {
+const IndexStateDep = {
   outPoint: { txHash: '0x9a58067d1c4fadca2577be74d95add7fd3f19dad13b1017837984ecd4fff641d', index: '0x0' },
   depType: 'code',
 }
 
-const TimestampInfoTypeScript = {
+const InfoTypeScript = {
   codeHash: '0xe4fd6f46ab1fd3d5b377df9e2d4ea77e3b52f53ac3319595bb38d097ea051cfd',
   hashType: 'type',
   args: '0x',
 }
 
-const TimestampInfoDep = {
+const InfoDep = {
   outPoint: { txHash: '0xcd010a6064892a038556713ba254c73a193b361d782bf436ffd6ee4720689eb0', index: '0x0' },
   depType: 'code',
 }
@@ -66,17 +67,19 @@ export default {
   BLOCKS_INTERVAL: 3,
 
   PayersLockScript, // AlwaysSuccessLockScript
-  IndexStateDep: TimestampIndexStateDep,
-  IndexStateTypeScript: IndexStateTypeScript, // TimestampIndexStateTypeScript
-  InfoDep: TimestampInfoDep,
-  InfoTypeScript: TimestampInfoTypeScript,
+  // IndexStateDep: IndexStateDep,
+  // IndexStateTypeScript: IndexStateTypeScript, // TimestampIndexStateTypeScript
+  // InfoDep: InfoDep,
+  // InfoTypeScript: InfoTypeScript,
 
   AlwaysSuccessDep,
   AlwaysSuccessLockScript,
-  BlockNumberIndexStateTypeScript,
-  BlockNumberIndexStateDep,
-  BlockNumberInfoTypeScript,
-  BlockNumberInfoDep,
+  IndexStateDep: BlockNumberIndexStateDep,
+  IndexStateTypeScript: BlockNumberIndexStateTypeScript,
+  InfoTypeScript: BlockNumberInfoTypeScript,
+  InfoDep: BlockNumberInfoDep,
 
-  since: function (timestamp, blockNumber): string|void {}
+  since: function (timestamp, blockNumber): string|void {
+    return '0x0'
+  }
 }

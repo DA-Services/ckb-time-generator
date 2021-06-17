@@ -27,7 +27,7 @@ export class NumeralInfo {
   static fromData(data) {
     const temp = remove0x(data)
     if (temp.length !== TimeInfoDataLength) {
-      throw new Error('Info data length error')
+      throw new Error(`Info data length error: ${temp.length} ${temp}`)
     }
     return new NumeralInfo(parseIndex(temp), BigInt(`0x${temp.substring(2, TimeInfoDataLength)}`))
   }

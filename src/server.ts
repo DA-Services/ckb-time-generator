@@ -5,10 +5,14 @@ export async function startNumeralGeneratorServer (createOrUpdateNumeralInfoCell
   let ws = new WebSocket(config.CKB_WS_URL)
 
   ws.on('open', function open () {
+    console.log('Start Server: ws opened')
+
     ws.send('{"id": 2, "jsonrpc": "2.0", "method": "subscribe", "params": ["new_tip_header"]}')
   })
 
   ws.on('message', async function incoming (data) {
+    console.log('onmessage', data)
+
     if (JSON.parse(data).params) {
       const tipNumber = JSON.parse(JSON.parse(data).params.result).number
 

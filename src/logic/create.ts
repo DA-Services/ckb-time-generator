@@ -41,6 +41,7 @@ export async function createCells (initNumeralData: BigInt) {
     witnesses: [],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
+  console.log(`Creating numeral cell, inputs count ${inputs.length}`)
   // @ts-ignore
   const txHash = await ckb.rpc.sendTransaction(rawTx)
   console.info(`Creating numeral cell tx hash: ${txHash} numeralInfoData: ${numeralInfoData}`)

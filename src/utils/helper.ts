@@ -51,7 +51,7 @@ export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponen
     }
   }
   if (indexStateCells.length > 1) {
-    console.error('The amount of time index state cell is bigger than 1')
+    console.error(`The amount of index state cell is bigger than 1: ${indexStateCells.length}`)
   }
   const indexStateCell = indexStateCells[ 0 ]
   const indexState = IndexState.fromData(indexStateCell.output_data)

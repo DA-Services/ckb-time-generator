@@ -17,13 +17,13 @@ export async function updateCell (numeralData: BigInt) {
 
   const nextIndexState = indexState.increaseIndex()
 
-  const {infoCell: nextInfoCell} = await getInfoCell(nextIndexState.getIndex())
+  const {infoCell: infoCell} = await getInfoCell(nextIndexState.getIndex())
   const liveCells = await getCells(config.PayersLockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
 
   const latestTimeStamp = await getLatestTimestamp()
   const latestBlockNumber = await getLatestBlockNumber()
 
-  const needCapacity = (nextInfoCell ? BigInt(0) : NUMERAL_CELL_CAPACITY) + FEE
+  const needCapacity = (infoCell ? BigInt(0) : NUMERAL_CELL_CAPACITY) + FEE
 
   const {inputs, capacity} = collectInputs(liveCells, needCapacity, '0x0')
 
@@ -35,11 +35,11 @@ export async function updateCell (numeralData: BigInt) {
     since: '0x0',
   })
 
-  if (nextInfoCell) {
+  if (infoCell) {
     inputs.push({
       previousOutput: {
-        txHash: nextInfoCell.out_point.tx_hash,
-        index: nextInfoCell.out_point.index,
+        txHash: infoCell.out_point.tx_hash,
+        index: infoCell.out_point.index,
       },
       since: config.since(latestTimeStamp, latestBlockNumber),
     })
@@ -72,6 +72,7 @@ export async function updateCell (numeralData: BigInt) {
     witnesses: [],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
+  console.log(`Updating numeral cell, inputs count ${inputs.length}`)
   // @ts-ignore
   const txHash = await ckb.rpc.sendTransaction(rawTx)
   console.log(`Update numeral cell tx hash: ${txHash} nextNumeralInfo: ${nextNumeralInfo.toString()}`)
