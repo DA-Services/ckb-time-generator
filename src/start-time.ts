@@ -1,18 +1,16 @@
-process.env.HOSTNAME = 'time'
-import { createCells } from './logic/create'
-import { updateCell } from './logic/update'
-import { startNumeralGeneratorServer } from './server'
-import { getIndexStateCell, getLatestTimestamp } from './utils/helper'
+process.env.HOSTNAME = 'timestamp'
+// @ts-ignore
+import { CKBComponents } from '@nervosnetwork/ckb-types'
+import { startGeneratorServer } from './logic/server'
+import { generateTimestampSince} from './utils/helper'
+import { getLatestTimestamp } from './utils/rpc'
 
-async function createOrUpdateNumeralInfoCell () {
-  const {indexStateCell} = await getIndexStateCell()
-  if (!indexStateCell) {
-    console.log('Create Cells Time')
-    await createCells(BigInt(Math.floor(new Date().getTime() / 1000)))
-  } else {
-    console.log('Update Cells Time')
-    await updateCell(await getLatestTimestamp())
-  }
+async function start() {
+  await startGeneratorServer({
+    initInfoData: BigInt(Math.floor(Date.now() / 1000)),
+    updateInfoDataFunc: getLatestTimestamp,
+    sinceFunc: (timestamp, blockNumber): string => generateTimestampSince(timestamp)
+  })
 }
 
-void startNumeralGeneratorServer(createOrUpdateNumeralInfoCell)
+void start()

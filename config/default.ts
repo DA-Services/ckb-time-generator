@@ -1,3 +1,5 @@
+import { INFO_DATA_TYPE } from '../src/utils/const'
+
 const AlwaysSuccessLockScript = {
   codeHash: '0xd483925160e4232b2cb29f012e8380b7b612d71cf4e79991476b6bcf610735f6',
   hashType: 'data',
@@ -15,48 +17,28 @@ const AlwaysSuccessDep = {
 }
 
 const IndexStateTypeScript = {
-  codeHash: '0x57084ccd1e68f78a3b3477df67557049620aa5a5e0ad35239c82f3313865d997',
+  codeHash: '0x76c781c3b8d9ed0b69726dded5bb7d063d6f7d70dc0b495d87c475cbad9165e1',
   hashType: 'type',
   args: '0x',
 }
 
 const IndexStateDep = {
-  outPoint: { txHash: '0x9a58067d1c4fadca2577be74d95add7fd3f19dad13b1017837984ecd4fff641d', index: '0x0' },
+  outPoint: { txHash: '0xcb9b40b606b0e2382f2008a47e807b60d2ff262ea9df7502ca009feb72ded923', index: '0x0' },
   depType: 'code',
 }
 
 const InfoTypeScript = {
-  codeHash: '0xe4fd6f46ab1fd3d5b377df9e2d4ea77e3b52f53ac3319595bb38d097ea051cfd',
+  codeHash: '0x7a6db6793ecf341f8f5289bc164d4a417c5adb99ab86a750230d7d14e73768e7',
   hashType: 'type',
   args: '0x',
 }
 
 const InfoDep = {
-  outPoint: { txHash: '0xcd010a6064892a038556713ba254c73a193b361d782bf436ffd6ee4720689eb0', index: '0x0' },
+  outPoint: { txHash: '0x1bc39fc942746cf961f338c33626bfea999c96eb06334541859426580643fd51', index: '0x0' },
   depType: 'code',
 }
 
-const BlockNumberIndexStateTypeScript = {
-  codeHash: '0x6cc39193430aa80afc3daf728e7959acddc7e8fec96e95cc9c63c85f738c1b8f',
-  hashType: 'type',
-  args: '0x',
-}
-
-const BlockNumberIndexStateDep = {
-  outPoint: { txHash: '0x2f64766b60b21d574a79be958a6e2af97ddb8c9daf426e2736d6926fd8ea8922', index: '0x0' },
-  depType: 'code',
-}
-
-const BlockNumberInfoTypeScript = {
-  codeHash: '0x5f6a4cc2cd6369dbcf38ddfbc4323cf4695c2e8c20aed572b5db6adc2faf9d50',
-  hashType: 'type',
-  args: '0x',
-}
-
-const BlockNumberInfoDep = {
-  outPoint: { txHash: '0x70bfc41d9bfb779e5288fbfe10b12a98f1832c4759bd2b56d26bbe0387be0b14', index: '0x0' },
-  depType: 'code',
-}
+console.log('using config: default')
 
 export default {
   CKB_NODE_RPC: 'http://localhost:8114',
@@ -66,20 +48,16 @@ export default {
 
   BLOCKS_INTERVAL: 3,
 
-  PayersLockScript, // AlwaysSuccessLockScript
-  // IndexStateDep: IndexStateDep,
-  // IndexStateTypeScript: IndexStateTypeScript, // TimestampIndexStateTypeScript
-  // InfoDep: InfoDep,
-  // InfoTypeScript: InfoTypeScript,
+  infoDataType: INFO_DATA_TYPE.arbitrage,
+
+  PayersLockScript, // currently AlwaysSuccessLockScript, should be changed to our own lock script to prevent others' attack todo:
 
   AlwaysSuccessDep,
   AlwaysSuccessLockScript,
-  IndexStateDep: BlockNumberIndexStateDep,
-  IndexStateTypeScript: BlockNumberIndexStateTypeScript,
-  InfoTypeScript: BlockNumberInfoTypeScript,
-  InfoDep: BlockNumberInfoDep,
 
-  since: function (timestamp, blockNumber): string|void {
-    return '0x0'
-  }
+  IndexStateDep: IndexStateDep,
+  IndexStateTypeScript: IndexStateTypeScript,
+
+  InfoDep: InfoDep,
+  InfoTypeScript: InfoTypeScript,
 }

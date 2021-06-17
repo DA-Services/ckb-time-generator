@@ -1,23 +1,8 @@
 process.env.HOSTNAME = 'quote'
+// @ts-ignore
+import { CKBComponents } from '@nervosnetwork/ckb-types'
 import fetch from 'node-fetch'
-import { createCells } from './logic/create'
-import { updateCell } from './logic/update'
-import { startNumeralGeneratorServer } from './server'
-import { getIndexStateCell } from './utils/helper'
-
-async function createOrUpdateNumeralInfoCell () {
-  const {indexStateCell} = await getIndexStateCell()
-
-  if (!indexStateCell) {
-    console.log('Create Cells Quote')
-    await createCells(BigInt(await getCkbPrice()))
-  } else {
-    console.log('Update Cells Quote')
-    await updateCell(await getCkbPrice())
-  }
-}
-
-void startNumeralGeneratorServer(createOrUpdateNumeralInfoCell)
+import { startGeneratorServer } from './logic/server'
 
 /**
  * get ckb price
@@ -31,3 +16,12 @@ async function getCkbPrice(): Promise<BigInt> {
 
   throw new Error(`fetch nervos price error: ${data?.nervos?.usd}`)
 }
+
+async function start() {
+  await startGeneratorServer({
+    initInfoData: await getCkbPrice(),
+    updateInfoDataFunc: getCkbPrice
+  })
+}
+
+void start()

@@ -1,33 +1,36 @@
 import { serializeOutPoint } from '@nervosnetwork/ckb-sdk-utils'
+import config from '../config'
+import { IndexStateModel } from '../model/index_state_model'
+import { InfoModel } from '../model/info_model'
+import { FEE, INFO_CELL_CAPACITY } from '../utils/const'
 import { collectInputs, generateIndexStateOutput, generateInfoOutput } from '../utils/helper'
 import { toHex } from '../utils/hex'
-import config from '../config'
-import { FEE, NUMERAL_CELL_CAPACITY } from '../utils/const'
 import { ckb, getCells } from '../utils/rpc'
-import { IndexState } from '../model/time_index_state'
-import { NumeralInfo } from '../model/time_info'
 
+export async function createInfoAndIndexStateCells (initInfoData: BigInt) {
+  const initIndex = 0
+  const infoModel = new InfoModel(initIndex, initInfoData).toString()
 
-export async function createCells (initNumeralData: BigInt) {
+  const needCapacity = INFO_CELL_CAPACITY + INFO_CELL_CAPACITY + FEE
   const liveCells = await getCells(config.PayersLockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
-  const needCapacity = NUMERAL_CELL_CAPACITY + NUMERAL_CELL_CAPACITY + FEE // todo: 似乎不够？
   const {inputs, capacity: inputCapacity} = collectInputs(liveCells, needCapacity, '0x0')
 
   const typeArgs = serializeOutPoint(inputs[ 0 ].previousOutput)
   const indexStateOutput = await generateIndexStateOutput(typeArgs)
   const infoOutput = await generateInfoOutput(typeArgs)
+
   let outputs = [indexStateOutput, infoOutput]
+  let outputsData = [new IndexStateModel(initIndex).toString(), infoModel]
 
   if (inputCapacity > needCapacity) {
     outputs.push({
       capacity: toHex(inputCapacity - needCapacity),
       lock: config.PayersLockScript,
-      type: undefined, // todo:
+      type: undefined,
     })
-  }
 
-  const initIndex = 0
-  let numeralInfoData = new NumeralInfo(initIndex, initNumeralData).toString()
+    outputsData.push('0x')
+  }
 
   let cellDeps = [config.AlwaysSuccessDep, config.IndexStateDep, config.InfoDep]
 
@@ -37,12 +40,12 @@ export async function createCells (initNumeralData: BigInt) {
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: [new IndexState(initIndex).toString(), numeralInfoData, '0x'],
+    outputsData: outputsData,
     witnesses: [],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
-  console.log(`Creating numeral cell, inputs count ${inputs.length}`)
+  console.log(`Creating cells, inputs count ${inputs.length}`)
   // @ts-ignore
   const txHash = await ckb.rpc.sendTransaction(rawTx)
-  console.info(`Creating numeral cell tx hash: ${txHash} numeralInfoData: ${numeralInfoData}`)
+  console.info(`Creating cells, tx hash: ${txHash} infoData: ${infoModel}`)
 }

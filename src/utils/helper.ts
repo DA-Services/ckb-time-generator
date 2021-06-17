@@ -1,28 +1,15 @@
 // @ts-ignore
 import { CKBComponents } from '@nervosnetwork/ckb-types'
 import config from '../config'
-import { IndexState } from '../model/time_index_state'
-import { NumeralInfo } from '../model/time_info'
-import { NUMERAL_CELL_CAPACITY } from './const'
+import { IndexStateModel } from '../model/index_state_model'
+import { InfoModel } from '../model/info_model'
+import { INFO_CELL_CAPACITY } from './const'
 import { parseIndex, toHex, uint32ToBe } from './hex'
-import { ckb, getCells } from './rpc'
-
-export async function getLatestBlockNumber () {
-  const number = await ckb.rpc.getTipBlockNumber()
-  return BigInt(number)
-}
-
-export async function getLatestTimestamp () {
-  const tipBlockNumber = await getLatestBlockNumber()
-  //The median block time calculated from the past 37 blocks timestamp
-  const number = tipBlockNumber - BigInt(18)
-  const {timestamp} = await ckb.rpc.getHeaderByNumber(number)
-  return BigInt(Math.floor(parseInt(timestamp) / 1000))
-}
+import { getCells } from './rpc'
 
 export async function generateIndexStateOutput (args) {
   return {
-    capacity: toHex(NUMERAL_CELL_CAPACITY),
+    capacity: toHex(INFO_CELL_CAPACITY),
     lock: config.AlwaysSuccessLockScript,
     type: {
       ...config.IndexStateTypeScript,
@@ -33,7 +20,7 @@ export async function generateIndexStateOutput (args) {
 
 export async function generateInfoOutput (args) {
   return {
-    capacity: toHex(NUMERAL_CELL_CAPACITY),
+    capacity: toHex(INFO_CELL_CAPACITY),
     lock: config.AlwaysSuccessLockScript,
     type: {
       ...config.InfoTypeScript,
@@ -42,44 +29,47 @@ export async function generateInfoOutput (args) {
   }
 }
 
-export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponents.Cell, indexState: IndexState}> {
+export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponents.Cell, indexState: IndexStateModel}> {
   const indexStateCells = await getCells(config.IndexStateTypeScript, 'type')
+
   if (!indexStateCells || indexStateCells.length === 0) {
     return {
       indexStateCell: null,
       indexState: null,
     }
   }
+
   if (indexStateCells.length > 1) {
     console.error(`The amount of index state cell is bigger than 1: ${indexStateCells.length}`)
   }
+
   const indexStateCell = indexStateCells[ 0 ]
-  const indexState = IndexState.fromData(indexStateCell.output_data)
+  const indexState = IndexStateModel.fromData(indexStateCell.output_data)
   return {
     indexStateCell,
     indexState: indexState
   }
 }
 
-export async function getInfoCell (timeIndex): Promise<{infoCell: CKBComponents.Cell, numeralInfo: NumeralInfo}> {
-  let timeInfoCells = await getCells(config.InfoTypeScript, 'type')
+export async function getInfoCell (infoCellIndex): Promise<{infoCell: CKBComponents.Cell, infoModel: InfoModel}> {
+  let infoCells = await getCells(config.InfoTypeScript, 'type')
 
-  if (timeInfoCells && timeInfoCells.length !== 0) {
-    const infoCell = timeInfoCells.find(cell => parseIndex(cell.output_data) === timeIndex)
+  if (infoCells && infoCells.length !== 0) {
+    const infoCell = infoCells.find(cell => parseIndex(cell.output_data) === infoCellIndex)
 
     if (infoCell) {
-      const numeralInfo = NumeralInfo.fromData(infoCell.output_data)
+      const infoModel = InfoModel.fromData(infoCell.output_data)
 
       return {
         infoCell,
-        numeralInfo,
+        infoModel: infoModel,
       }
     }
   }
 
   return {
     infoCell: null,
-    numeralInfo: null,
+    infoModel: null,
   }
 }
 
@@ -105,10 +95,10 @@ export const collectInputs = (liveCells, needCapacity, since) => {
   return {inputs, capacity: sum}
 }
 
-export const generateTimestampInfoSince = timestamp => {
+export const generateTimestampSince = timestamp => {
   return `0x40000000${uint32ToBe(timestamp)}`
 }
 
-export const generateBlockNumberInfoSince = (blockNumber: BigInt) => {
+export const generateBlockNumberSince = (blockNumber: BigInt) => {
   return toHex(blockNumber)
 }

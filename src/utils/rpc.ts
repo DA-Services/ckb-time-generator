@@ -1,8 +1,10 @@
+import CKB from '@nervosnetwork/ckb-sdk-core'
 // @ts-ignore
 import { CKBComponents } from '@nervosnetwork/ckb-types'
-import CKB from '@nervosnetwork/ckb-sdk-core'
 import fetch from 'node-fetch'
 import config from '../config'
+
+export const ckb = new CKB(config.CKB_NODE_RPC)
 
 /**
  *
@@ -45,4 +47,15 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
   }
 }
 
-export const ckb = new CKB(config.CKB_NODE_RPC)
+export async function getLatestBlockNumber () {
+  const number = await ckb.rpc.getTipBlockNumber()
+  return BigInt(number)
+}
+
+export async function getLatestTimestamp () {
+  const tipBlockNumber = await getLatestBlockNumber()
+  //The median block time calculated from the past 37 blocks timestamp
+  const number = tipBlockNumber - BigInt(18)
+  const {timestamp} = await ckb.rpc.getHeaderByNumber(number)
+  return BigInt(Math.floor(parseInt(timestamp) / 1000))
+}
