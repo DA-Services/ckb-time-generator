@@ -1,4 +1,4 @@
-import { generateBlockNumberInfoSince } from '../src/time/helper'
+import { generateBlockNumberInfoSince } from '../src/utils/helper'
 
 export default {
   BLOCKS_INTERVAL: 2,

@@ -3,9 +3,9 @@ import { CKBComponents } from '@nervosnetwork/ckb-types'
 import config from '../config'
 import { IndexState } from '../model/time_index_state'
 import { NumeralInfo } from '../model/time_info'
-import { ckb, NUMERAL_CELL_CAPACITY } from '../utils/const'
-import { parseIndex, toHex, uint32ToBe } from '../utils/hex'
-import { getCells } from './rpc'
+import { NUMERAL_CELL_CAPACITY } from './const'
+import { parseIndex, toHex, uint32ToBe } from './hex'
+import { ckb, getCells } from './rpc'
 
 export async function getLatestBlockNumber () {
   const number = await ckb.rpc.getTipBlockNumber()

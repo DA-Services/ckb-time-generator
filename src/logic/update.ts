@@ -7,9 +7,9 @@ import {
   getLatestTimestamp,
   getIndexStateCell,
   getInfoCell, collectInputs,
-} from './helper'
-import { ckb, FEE, NUMERAL_CELL_CAPACITY } from '../utils/const'
-import { getCells} from './rpc'
+} from '../utils/helper'
+import { FEE, NUMERAL_CELL_CAPACITY } from '../utils/const'
+import { ckb, getCells } from '../utils/rpc'
 import { NumeralInfo } from '../model/time_info'
 
 export async function updateCell (numeralData: BigInt) {

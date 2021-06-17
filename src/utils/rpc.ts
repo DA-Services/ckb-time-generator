@@ -1,5 +1,6 @@
 // @ts-ignore
 import { CKBComponents } from '@nervosnetwork/ckb-types'
+import CKB from '@nervosnetwork/ckb-sdk-core'
 import fetch from 'node-fetch'
 import config from '../config'
 
@@ -44,3 +45,4 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
   }
 }
 
+export const ckb = new CKB(config.CKB_NODE_RPC)

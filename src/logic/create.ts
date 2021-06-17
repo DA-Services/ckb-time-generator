@@ -1,9 +1,9 @@
 import { serializeOutPoint } from '@nervosnetwork/ckb-sdk-utils'
-import { collectInputs, generateIndexStateOutput, generateInfoOutput } from './helper'
+import { collectInputs, generateIndexStateOutput, generateInfoOutput } from '../utils/helper'
 import { toHex } from '../utils/hex'
 import config from '../config'
-import { ckb, FEE, NUMERAL_CELL_CAPACITY } from '../utils/const'
-import { getCells} from './rpc'
+import { FEE, NUMERAL_CELL_CAPACITY } from '../utils/const'
+import { ckb, getCells } from '../utils/rpc'
 import { IndexState } from '../model/time_index_state'
 import { NumeralInfo } from '../model/time_info'
 
