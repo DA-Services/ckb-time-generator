@@ -1,52 +1,35 @@
 import { serializeOutPoint } from '@nervosnetwork/ckb-sdk-utils'
-import {
-  AlwaysSuccessDep,
-  AlwaysSuccessLockScript,
-  TimestampIndexStateDep,
-  TimestampInfoDep,
-  BlockNumberIndexStateDep,
-  BlockNumberInfoDep,
-} from '../utils/config'
+import { collectInputs, generateIndexStateOutput, generateInfoOutput } from './helper'
+import { toHex } from '../utils/hex'
+import config from '../config'
+import { ckb, FEE, NUMERAL_CELL_CAPACITY } from '../utils/const'
+import { getCells} from './rpc'
+import { IndexState } from '../model/time_index_state'
+import { NumeralInfo } from '../model/time_info'
 
-const { generateTimeIndexStateOutput, generateTimeInfoOutput, getLatestBlockNumber } = require('./helper')
-import { ckb, FEE, TIME_CELL_CAPACITY } from '../utils/const'
-import { getCells, collectInputs } from './rpc'
-import { TimeIndexState } from '../model/time_index_state'
-import { TimestampInfo, BlockNumberInfo } from '../model/time_info'
 
-export const createTimeCell = async (isTimestamp = true) => {
-  const liveCells = await getCells(AlwaysSuccessLockScript, 'lock', { output_data_len_range: ['0x0', '0x1'] })
-  const needCapacity = TIME_CELL_CAPACITY + TIME_CELL_CAPACITY + FEE
-  const { inputs, capacity: inputCapacity } = collectInputs(liveCells, needCapacity, '0x0')
+export async function createCells (initNumeralData: BigInt) {
+  const liveCells = await getCells(config.PayersLockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
+  const needCapacity = NUMERAL_CELL_CAPACITY + NUMERAL_CELL_CAPACITY + FEE // todo: 似乎不够？
+  const {inputs, capacity: inputCapacity} = collectInputs(liveCells, needCapacity, '0x0')
 
-  const typeArgs = serializeOutPoint(inputs[0].previousOutput)
-  const timeIndexStateOutput = await generateTimeIndexStateOutput(typeArgs, isTimestamp)
-  const timeInfoOutput = await generateTimeInfoOutput(typeArgs, isTimestamp)
-  let outputs = [timeIndexStateOutput, timeInfoOutput]
+  const typeArgs = serializeOutPoint(inputs[ 0 ].previousOutput)
+  const indexStateOutput = await generateIndexStateOutput(typeArgs)
+  const infoOutput = await generateInfoOutput(typeArgs)
+  let outputs = [indexStateOutput, infoOutput]
 
   if (inputCapacity > needCapacity) {
     outputs.push({
-      capacity: `0x${(inputCapacity - needCapacity).toString(16)}`,
-      lock: AlwaysSuccessLockScript,
+      capacity: toHex(inputCapacity - needCapacity),
+      lock: config.PayersLockScript,
+      type: undefined, // todo:
     })
   }
 
-  const timeIndex = 0
-  let timeInfoData = '0x'
-  if (isTimestamp) {
-    const timestamp = Math.floor(new Date().getTime() / 1000)
-    timeInfoData = new TimestampInfo(timeIndex, timestamp).toString()
-  } else {
-    const tipBlockNumber = await getLatestBlockNumber()
-    timeInfoData = new BlockNumberInfo(timeIndex, tipBlockNumber).toString()
-  }
+  const initIndex = 0
+  let numeralInfoData = new NumeralInfo(initIndex, initNumeralData).toString()
 
-  let cellDeps = [AlwaysSuccessDep]
-  if (isTimestamp) {
-    cellDeps = cellDeps.concat([TimestampIndexStateDep, TimestampInfoDep])
-  } else {
-    cellDeps = cellDeps.concat([BlockNumberIndexStateDep, BlockNumberInfoDep])
-  }
+  let cellDeps = [config.AlwaysSuccessDep, config.IndexStateDep, config.InfoDep]
 
   const rawTx = {
     version: '0x0',
@@ -54,10 +37,11 @@ export const createTimeCell = async (isTimestamp = true) => {
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: [new TimeIndexState(timeIndex).toString(), timeInfoData, '0x'],
+    outputsData: [new IndexState(initIndex).toString(), numeralInfoData, '0x'],
     witnesses: [],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
+  // @ts-ignore
   const txHash = await ckb.rpc.sendTransaction(rawTx)
-  console.info(`Creating time cell tx hash: ${txHash} timeInfoData: ${timeInfoData}`)
+  console.info(`Creating numeral cell tx hash: ${txHash} numeralInfoData: ${numeralInfoData}`)
 }

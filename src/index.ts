@@ -1,11 +1,11 @@
 import WebSocket from 'ws'
-import { createTimeCell } from './time/create'
-import { updateTimeCell } from './time/update'
-import { getTimeIndexStateCell } from './time/helper'
-import { CKB_WS_URL } from './utils/config'
+import config from './config'
+import { createCells } from './time/create'
+import { updateCell } from './time/update'
+import { getIndexStateCell, getLatestBlockNumber, getLatestTimestamp } from './time/helper'
 
-const startBlockNumberServer = async () => {
-  let ws = new WebSocket(CKB_WS_URL)
+const startNumeralGeneratorServer = async () => {
+  let ws = new WebSocket(config.CKB_WS_URL)
 
   ws.on('open', function open() {
     ws.send('{"id": 2, "jsonrpc": "2.0", "method": "subscribe", "params": ["new_tip_header"]}')
@@ -15,26 +15,28 @@ const startBlockNumberServer = async () => {
     if (JSON.parse(data).params) {
       const tipNumber = JSON.parse(JSON.parse(data).params.result).number
       console.info('New Block', tipNumber)
-      if (parseInt(tipNumber, 16) % 2 === 0) {
-        await createOrUpdateTimeInfoCell()
+      if (parseInt(tipNumber, 16) % config.BLOCKS_INTERVAL === 0) {
+        await createOrUpdateNumeralInfoCell()
       }
     }
   })
 
   ws.on('close', async function close(code, reason) {
     console.info('Websocket Close', code, reason)
-    await createOrUpdateTimeInfoCell()
-    startBlockNumberServer()
+    await createOrUpdateNumeralInfoCell()
+    await startNumeralGeneratorServer()
   })
 }
 
-const createOrUpdateTimeInfoCell = async () => {
-  const { timeIndexStateCell } = await getTimeIndexStateCell(false)
-  if (!timeIndexStateCell) {
-    await createTimeCell(false)
+const createOrUpdateNumeralInfoCell = async () => {
+  const { indexStateCell } = await getIndexStateCell()
+  if (!indexStateCell) {
+    await createCells(BigInt(Math.floor(new Date().getTime() / 1000))) // todo:
+    // await createCells(BigInt(await getLatestBlockNumber())) // todo:
   } else {
-    await updateTimeCell(false)
+    await updateCell(await getLatestTimestamp()) // todo:
+    // await updateCell(await getLatestBlockNumber()) // todo:
   }
 }
 
-startBlockNumberServer()
+void startNumeralGeneratorServer()

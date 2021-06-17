@@ -1,6 +1,6 @@
-// import config from 'config'
-import config from '../config/default'
+import config from 'config'
+import defaultConfig from '../config/default'
 
-export {
-  config,
-}
+type Config = typeof defaultConfig
+
+export default config as Config

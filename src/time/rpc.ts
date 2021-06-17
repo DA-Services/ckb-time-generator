@@ -1,7 +1,15 @@
+// @ts-ignore
+import { CKBComponents } from '@nervosnetwork/ckb-types'
 import fetch from 'node-fetch'
-import { CKB_NODE_INDEXER } from '../utils/config'
+import config from '../config'
 
-export const getCells = async (script, type, filter?) => {
+/**
+ *
+ * @param script
+ * @param type 'type'|'lock'
+ * @param filter
+ */
+export async function getCells (script: CKBComponents.Script, type, filter?): Promise<CKBComponents.Cell[]> {
   let payload = {
     id: 1,
     jsonrpc: '2.0',
@@ -22,7 +30,7 @@ export const getCells = async (script, type, filter?) => {
   }
   const body = JSON.stringify(payload, null, '  ')
   try {
-    let res = await fetch(CKB_NODE_INDEXER, {
+    let res = await fetch(config.CKB_NODE_INDEXER, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,24 +44,3 @@ export const getCells = async (script, type, filter?) => {
   }
 }
 
-export const collectInputs = (liveCells, needCapacity, since) => {
-  let inputs = []
-  let sum = BigInt(0)
-  for (let cell of liveCells) {
-    inputs.push({
-      previousOutput: {
-        txHash: cell.out_point.tx_hash,
-        index: cell.out_point.index,
-      },
-      since,
-    })
-    sum = sum + BigInt(cell.output.capacity)
-    if (sum >= needCapacity) {
-      break
-    }
-  }
-  if (sum < needCapacity) {
-    throw Error('Capacity not enough')
-  }
-  return { inputs, capacity: sum }
-}

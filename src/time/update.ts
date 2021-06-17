@@ -1,86 +1,78 @@
+import config from '../config'
+import { toHex } from '../utils/hex'
 import {
-  generateBlockNumberInfoSince,
-  generateTimeIndexStateOutput,
-  generateTimeInfoOutput,
-  generateTimestampInfoSince,
+  generateIndexStateOutput,
+  generateInfoOutput,
   getLatestBlockNumber,
   getLatestTimestamp,
-  getTimeIndexStateCell,
-  getTimeInfoCell,
+  getIndexStateCell,
+  getInfoCell, collectInputs,
 } from './helper'
-import { ckb, FEE, TIME_CELL_CAPACITY } from '../utils/const'
-import { getCells, collectInputs } from './rpc'
-import {
-  AlwaysSuccessLockScript,
-  AlwaysSuccessDep,
-  TimestampIndexStateDep,
-  TimestampInfoDep,
-  BlockNumberIndexStateDep,
-  BlockNumberInfoDep,
-} from '../utils/config'
-import { TimestampInfo, BlockNumberInfo } from '../model/time_info'
+import { ckb, FEE, NUMERAL_CELL_CAPACITY } from '../utils/const'
+import { getCells} from './rpc'
+import { NumeralInfo } from '../model/time_info'
 
-export const updateTimeCell = async isTimestamp => {
-  const { timeIndexStateCell, timeIndexState } = await getTimeIndexStateCell(isTimestamp)
-  const nextTimeIndexState = timeIndexState.increaseIndex()
+export async function updateCell (numeralData: BigInt) {
+  const {indexStateCell, indexState} = await getIndexStateCell()
 
-  const { timeInfoCell: nextTimeInfoCell } = await getTimeInfoCell(nextTimeIndexState.getTimeIndex(), isTimestamp)
+  const nextIndexState = indexState.increaseIndex()
 
-  const liveCells = await getCells(AlwaysSuccessLockScript, 'lock', { output_data_len_range: ['0x0', '0x1'] })
+  const {infoCell: nextInfoCell} = await getInfoCell(nextIndexState.getIndex())
+  const liveCells = await getCells(config.PayersLockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
 
-  const needCapacity = (nextTimeInfoCell ? BigInt(0) : TIME_CELL_CAPACITY) + FEE
-  const { inputs, capacity } = collectInputs(liveCells, needCapacity, '0x0')
-  const nextTimestamp = await getLatestTimestamp()
-  const nextBlockNumber = await getLatestBlockNumber()
+  const latestTimeStamp = await getLatestTimestamp()
+  const latestBlockNumber = await getLatestBlockNumber()
+
+  const needCapacity = (nextInfoCell ? BigInt(0) : NUMERAL_CELL_CAPACITY) + FEE
+
+  const {inputs, capacity} = collectInputs(liveCells, needCapacity, '0x0')
 
   inputs.push({
     previousOutput: {
-      txHash: timeIndexStateCell.out_point.tx_hash,
-      index: timeIndexStateCell.out_point.index,
+      txHash: indexStateCell.out_point.tx_hash,
+      index: indexStateCell.out_point.index,
     },
     since: '0x0',
   })
-  if (nextTimeInfoCell) {
+
+  if (nextInfoCell) {
     inputs.push({
       previousOutput: {
-        txHash: nextTimeInfoCell.out_point.tx_hash,
-        index: nextTimeInfoCell.out_point.index,
+        txHash: nextInfoCell.out_point.tx_hash,
+        index: nextInfoCell.out_point.index,
       },
-      since: isTimestamp ? generateTimestampInfoSince(nextTimestamp) : generateBlockNumberInfoSince(nextBlockNumber),
+      since: config.since(latestTimeStamp, latestBlockNumber),
     })
   }
 
   let outputs = [
-    await generateTimeIndexStateOutput(timeIndexStateCell.output.type.args, isTimestamp),
-    await generateTimeInfoOutput(timeIndexStateCell.output.type.args, isTimestamp),
+    await generateIndexStateOutput(indexStateCell.output.type.args),
+    await generateInfoOutput(indexStateCell.output.type.args),
   ]
 
   if (capacity > needCapacity) {
     outputs.push({
-      capacity: `0x${(capacity - needCapacity).toString(16)}`,
-      lock: AlwaysSuccessLockScript,
-      type: undefined // todo: what should be filled here?
+      capacity: toHex(capacity - needCapacity),
+      lock: config.PayersLockScript,
+      type: undefined, // todo: what should be filled here?
     })
   }
 
-  const nextTimeIndex = nextTimeIndexState.getTimeIndex()
-  const nextTimeInfo = isTimestamp ? new TimestampInfo(nextTimeIndex, nextTimestamp) : new BlockNumberInfo(nextTimeIndex, nextBlockNumber)
-  let cellDeps = [AlwaysSuccessDep]
-  if (isTimestamp) {
-    cellDeps = cellDeps.concat([TimestampIndexStateDep, TimestampInfoDep])
-  } else {
-    cellDeps = cellDeps.concat([BlockNumberIndexStateDep, BlockNumberInfoDep])
-  }
+  const nextIndex = nextIndexState.getIndex()
+  const nextNumeralInfo = new NumeralInfo(nextIndex, numeralData)
+  let cellDeps = [config.AlwaysSuccessDep, config.IndexStateDep, config.InfoDep]
+
   const rawTx = {
     version: '0x0',
     cellDeps,
     headerDeps: [],
     inputs,
     outputs,
-    outputsData: [nextTimeIndexState.toString(), nextTimeInfo.toString(), '0x'],
+    outputsData: [nextIndexState.toString(), nextNumeralInfo.toString(), '0x'],
     witnesses: [],
   }
   rawTx.witnesses = rawTx.inputs.map((_, _i) => '0x')
+  // @ts-ignore
   const txHash = await ckb.rpc.sendTransaction(rawTx)
-  console.log(`Update time cell tx hash: ${txHash} nextTimeInfo: ${nextTimeInfo.toString()}`)
+  console.log(`Update numeral cell tx hash: ${txHash} nextNumeralInfo: ${nextNumeralInfo.toString()}`)
 }

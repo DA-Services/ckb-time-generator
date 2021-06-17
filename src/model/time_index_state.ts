@@ -1,14 +1,14 @@
-import { remove0x } from '../utils/hex'
+import { parseIndex, remove0x } from '../utils/hex'
 const SUM_OF_TIME_INFO_CELLS = 12
 
-export class TimeIndexState {
+export class IndexState {
   private index: number
 
   constructor(index) {
     this.index = index
   }
 
-  getTimeIndex() {
+  getIndex() {
     return this.index
   }
 
@@ -24,11 +24,11 @@ export class TimeIndexState {
     return this
   }
 
-  static fromData(data) {
+  static fromData(data: string): IndexState {
     const temp = remove0x(data)
     if (temp.length != 4) {
-      throw new Error('Time info data length error')
+      throw new Error('IndexState length error')
     }
-    return new TimeIndexState(parseInt(temp.substring(0, 2), 16))
+    return new IndexState(parseIndex(temp))
   }
 }
