@@ -3,4 +3,5 @@ import defaultConfig from '../config/default'
 
 type Config = typeof defaultConfig
 
-export default config as Config
+// todo: here is a temp workaround, should be fixed in the future
+export default config.default || config as Config

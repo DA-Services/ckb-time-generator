@@ -13,6 +13,8 @@ interface ServerParams {
 }
 
 export async function startGeneratorServer ({ initInfoData, updateInfoDataFunc, sinceFunc }: ServerParams) {
+  console.log(`Connecting to ${config.CKB_WS_URL}`)
+
   let ws = new WebSocket(config.CKB_WS_URL)
 
   async function createOrUpdateInfoCells(indexStateCell: CKBComponents.Cell) {

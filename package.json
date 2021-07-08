@@ -7,24 +7,24 @@
   "author": "eric.wang",
   "license": "MIT",
   "scripts": {
-    "start:timestamp": "node src/timestamp.js",
-    "start:blocknumber": "node src/block_number.js",
-    "dev": "ts-node src/start-block.ts",
+    "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-timestamp.js",
+    "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-blocknumber.js",
+    "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-quote.js",
+    "dev": "ts-node src/start-blocknumber.ts",
     "lint": "eslint src/**/*.js --fix"
   },
   "dependencies": {
-    "@nervosnetwork/ckb-sdk-core": "^0.38.2",
-    "@nervosnetwork/ckb-sdk-utils": "^0.38.2",
+    "@nervosnetwork/ckb-sdk-core": "^0.43.0",
+    "@nervosnetwork/ckb-sdk-utils": "^0.43.0",
     "config": "^3.3.6",
     "node-fetch": "^2.6.1",
-    "ws": "^7.3.1"
+    "ws": "^7.5.2"
   },
   "devDependencies": {
-    "@nervosnetwork/ckb-types": "^0.41.1",
-    "@types/node": "^15.12.2",
-    "dotenv": "^8.2.0",
-    "eslint": "^7.14.0",
-    "husky": "^4.3.0"
+    "@nervosnetwork/ckb-types": "^0.43.0",
+    "@types/node": "^16.0.1",
+    "eslint": "^7.30.0",
+    "husky": "^7.0.1"
   },
   "husky": {
     "hooks": {
