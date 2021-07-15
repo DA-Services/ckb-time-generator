@@ -1,15 +1,17 @@
-import config from '../config'
-import { parseIndex, remove0x, uint32ToBe, uint64ToBe, uint8ToHex } from '../utils/hex'
+import { Buffer } from 'buffer'
+import { remove0x } from '../utils/hex'
 
 // Info data: index(u8) | type(u8) | timestamp(u64) BigEndian
-const InfoDataHexLength = (1 + 1 + 8) * 2
+const InfoDataLength = 1 + 1 + 8;
 
 export class InfoModel {
   private readonly index: number
+  private readonly dataType: number
   private readonly infoData: BigInt
 
-  constructor(index, infoData: BigInt) {
+  constructor(index, dataType, infoData: BigInt) {
     this.index = index
+    this.dataType = dataType
     this.infoData = infoData
   }
 
@@ -17,19 +19,31 @@ export class InfoModel {
     return this.index
   }
 
+  getDataType() {
+    return this.dataType
+  }
+
   getInfoData() {
     return this.infoData
   }
 
   toString() {
-    return `0x${uint8ToHex(this.index)}${config.infoDataType}${uint64ToBe(this.infoData)}`
+    let buf = Buffer.allocUnsafe(InfoDataLength)
+    buf.writeUInt8(this.index, 0)
+    buf.writeUInt8(this.dataType, 1)
+    buf.writeBigUInt64BE(this.infoData as bigint, 2)
+
+    return `0x${buf.toString('hex')}`
   }
 
-  static fromData(data) {
-    const temp = remove0x(data)
-    if (temp.length !== InfoDataHexLength) {
-      throw new Error(`Info data length error: ${temp.length} ${temp}`)
+  static fromHex(hex: string) {
+    const buf = Buffer.from(remove0x(hex), 'hex')
+
+    if (buf.length !== InfoDataLength) {
+      throw new Error(`Info data length error.(expected: ${InfoDataLength}, current: ${buf.length})`)
     }
-    return new InfoModel(parseIndex(temp), BigInt(`0x${temp.substring(2, InfoDataHexLength)}`))
+
+    let data = buf.readBigUInt64BE(2);
+    return new InfoModel(buf[0], buf[1], data as BigInt)
   }
 }

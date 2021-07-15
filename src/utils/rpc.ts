@@ -28,7 +28,7 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
         filter: filter,
       },
       'asc',
-      '0x200',
+      '0xff',
     ],
   }
   const body = JSON.stringify(payload, null, '  ')
@@ -45,6 +45,10 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
   } catch (error) {
     console.error('error', error)
   }
+}
+
+export async function getTransaction(txHash: string): Promise<CKBComponents.TransactionWithStatus> {
+  return ckb.rpc.getTransaction(txHash)
 }
 
 export async function getLatestBlockNumber () {

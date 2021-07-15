@@ -5,7 +5,7 @@ export const remove0x = hex => {
   return hex
 }
 
-function ArrayBufferToHex (arrayBuffer: ArrayBuffer): string {
+export function ArrayBufferToHex (arrayBuffer: ArrayBuffer): string {
   return Array.prototype.map.call(
     new Uint8Array(arrayBuffer),
     (x: number) => ('00' + x.toString(16)).slice(-2),
@@ -16,21 +16,6 @@ export function uint32ToBe (u32: number) {
   let buffer = new ArrayBuffer(4)
   let view = new DataView(buffer)
   view.setUint32(0, u32, false)
-  return ArrayBufferToHex(buffer)
-}
-
-export function uint64ToBe (u64: BigInt) {
-  if (typeof u64 !== 'bigint') {
-    throw new Error('u64 must be bigint')
-  }
-  const val = remove0x(u64.toString(16))
-  return `${'0'.repeat(16 - val.length)}${val}`
-}
-
-export function uint8ToHex (u8: number) {
-  let buffer = new ArrayBuffer(1)
-  let view = new DataView(buffer)
-  view.setUint8(0, u8)
   return ArrayBufferToHex(buffer)
 }
 

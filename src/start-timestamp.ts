@@ -2,7 +2,7 @@ process.env.HOSTNAME = 'timestamp'
 // @ts-ignore
 import { CKBComponents } from '@nervosnetwork/ckb-types'
 import { startGeneratorServer } from './logic/server'
-import { generateTimestampSince} from './utils/helper'
+import { generateTimestampSince } from './utils/helper'
 import { getLatestTimestamp } from './utils/rpc'
 
 async function start() {

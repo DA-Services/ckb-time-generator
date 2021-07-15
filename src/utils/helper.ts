@@ -10,7 +10,7 @@ import { getCells } from './rpc'
 export async function generateIndexStateOutput (args) {
   return {
     capacity: toHex(INFO_CELL_CAPACITY),
-    lock: config.AlwaysSuccessLockScript,
+    lock: config.PayersLockScript,
     type: {
       ...config.IndexStateTypeScript,
       args,
@@ -21,7 +21,7 @@ export async function generateIndexStateOutput (args) {
 export async function generateInfoOutput (args) {
   return {
     capacity: toHex(INFO_CELL_CAPACITY),
-    lock: config.AlwaysSuccessLockScript,
+    lock: config.PayersLockScript,
     type: {
       ...config.InfoTypeScript,
       args
@@ -58,7 +58,7 @@ export async function getInfoCell (infoCellIndex): Promise<{infoCell: CKBCompone
     const infoCell = infoCells.find(cell => parseIndex(cell.output_data) === infoCellIndex)
 
     if (infoCell) {
-      const infoModel = InfoModel.fromData(infoCell.output_data)
+      const infoModel = InfoModel.fromHex(infoCell.output_data)
 
       return {
         infoCell,

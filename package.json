@@ -10,6 +10,9 @@
     "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-timestamp.js",
     "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-blocknumber.js",
     "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-quote.js",
+    "dev:timestamp": "NODE_CONFIG_DIR=./dist/config ts-node src/start-timestamp.ts",
+    "dev:blocknumber": "NODE_CONFIG_DIR=./dist/config ts-node src/start-blocknumber.ts",
+    "dev:quote": "NODE_CONFIG_DIR=./dist/config ts-node src/start-quote.ts",
     "dev": "ts-node src/start-blocknumber.ts",
     "lint": "eslint src/**/*.js --fix"
   },
@@ -18,6 +21,7 @@
     "@nervosnetwork/ckb-sdk-utils": "^0.43.0",
     "config": "^3.3.6",
     "node-fetch": "^2.6.1",
+    "typescript": "^4.3.5",
     "ws": "^7.5.2"
   },
   "devDependencies": {

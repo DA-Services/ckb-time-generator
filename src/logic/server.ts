@@ -5,6 +5,7 @@ import config from '../config'
 import { getIndexStateCell } from '../utils/helper'
 import { createInfoAndIndexStateCells } from './create'
 import { SinceFunc, updateInfoAndIndexStateCell } from './update'
+import { getTransaction } from '../utils/rpc'
 
 interface ServerParams {
   initInfoData: BigInt,
@@ -17,19 +18,21 @@ export async function startGeneratorServer ({ initInfoData, updateInfoDataFunc, 
 
   let ws = new WebSocket(config.CKB_WS_URL)
 
-  async function createOrUpdateInfoCells(indexStateCell: CKBComponents.Cell) {
+  async function createOrUpdateInfoCells(indexStateCell: CKBComponents.Cell): Promise<string> {
     if (!indexStateCell) {
-      console.log('Create Cells')
-      await createInfoAndIndexStateCells(initInfoData)
+      return await createInfoAndIndexStateCells(initInfoData)
     }
     else {
-      console.log('Update Cells')
-      await updateInfoAndIndexStateCell(
+      return await updateInfoAndIndexStateCell(
         await updateInfoDataFunc(),
         sinceFunc,
       )
     }
   }
+
+  // For debugging purpose, uncomment the following line:
+  // const {indexStateCell} = await getIndexStateCell()
+  // await createOrUpdateInfoCells(indexStateCell)
 
   ws.on('open', function open () {
     console.log('Start Server')
@@ -37,19 +40,47 @@ export async function startGeneratorServer ({ initInfoData, updateInfoDataFunc, 
     ws.send('{"id": 2, "jsonrpc": "2.0", "method": "subscribe", "params": ["new_tip_header"]}')
   })
 
+  let isLocked = false
+  let prevTxHash = ''
+  let waitedBlocks = 0
   ws.on('message', async function incoming (data) {
     console.log('onmessage', data)
+    if (isLocked) {
+      console.log('onmessage: Locked for waiting rpc response, skip this event ...')
+      return
+    }
+    isLocked = true
 
     if (JSON.parse(data).params) {
       const tipNumber = JSON.parse(JSON.parse(data).params.result).number
+      console.info('onmessage: New block:', tipNumber)
 
-      console.info('New Block', tipNumber)
+      if (prevTxHash && waitedBlocks <= 5) {
+        console.info('onmessage: Checking if latest transaction is committed ...')
 
-      if (parseInt(tipNumber, 16) % config.BLOCKS_INTERVAL === 0) {
-        const {indexStateCell} = await getIndexStateCell()
-        await createOrUpdateInfoCells(indexStateCell)
+        const tx = await getTransaction(prevTxHash)
+        // tx maybe null
+        if (!tx || tx.txStatus.status !== 'committed') {
+          console.info(`onmessage: Latest transaction is not committed, keep waiting for it.(waitedBlock: ${waitedBlocks})`)
+          waitedBlocks++
+          isLocked = false
+          return
+        }
       }
+      waitedBlocks = 0
+
+      const {indexStateCell} = await getIndexStateCell()
+      const ret = await createOrUpdateInfoCells(indexStateCell)
+      if (ret === 'retry') {
+        console.info('onmessage: Some cells are occupied, try again later.')
+        isLocked = false
+        return
+      }
+
+      prevTxHash = ret
     }
+
+    isLocked = false
   })
 
   ws.on('close', async function close (code, reason) {
