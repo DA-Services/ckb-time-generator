@@ -7,6 +7,7 @@
   "author": "eric.wang",
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
     "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-timestamp.js",
     "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-blocknumber.js",
     "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-quote.js",
