@@ -92,9 +92,10 @@ export async function updateInfoAndIndexStateCell (infoData: BigInt, since?: Sin
 
   try {
     const txHash = await ckb.rpc.sendTransaction(signedRawTx)
-    console.log(`create: Push transaction, tx hash:`, txHash)
+    console.log(`update: Push transaction, tx hash:`, txHash)
     return txHash
   } catch (e) {
+    console.error('update: Send transaction failed:', e.message)
     if (e.message.search('"code":-301')) {
       return 'retry'
     } else {
