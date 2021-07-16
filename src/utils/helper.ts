@@ -96,7 +96,8 @@ export const collectInputs = (liveCells, needCapacity, since) => {
 }
 
 export const generateTimestampSince = timestamp => {
-  return `0x40000000${uint32ToBe(timestamp)}`
+  // TODO temporarily convert bigint to number, should refactor to buffer in the future
+  return `0x40000000${uint32ToBe(parseInt(timestamp))}`
 }
 
 export const generateBlockNumberSince = (blockNumber: BigInt) => {
