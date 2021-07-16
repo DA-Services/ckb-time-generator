@@ -27,18 +27,6 @@ export async function updateInfoAndIndexStateCell (infoData: BigInt, since?: Sin
 
   const { infoCell } = await getInfoCell(newIndexState.getIndex())
   const needCapacity = (infoCell ? BigInt(0) : INFO_CELL_CAPACITY) + FEE
-  switch (config.infoDataType) {
-    case 2:
-      console.log(`update: Update block number, IndexStateCell ${indexState.getIndex()} -> ${newIndexState.getIndex()}, InfoCell -> ${latestBlockNumber}`)
-      break;
-    case 1:
-      console.log(`update: Update timestamp, IndexStateCell ${indexState.getIndex()} -> ${newIndexState.getIndex()}, InfoCell -> ${latestTimeStamp}`)
-      break;
-    default:
-      console.log(`update: Update quote, IndexStateCell ${indexState.getIndex()} -> ${newIndexState.getIndex()}, InfoCell -> ${latestBlockNumber}`)
-      break;
-  }
-
   const liveCells = await getCells(config.PayersLockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
   const { inputs, capacity: inputCapacity } = collectInputs(liveCells, needCapacity, '0x0')
   // console.log('update: Find inputs: ', inputs)
@@ -72,6 +60,9 @@ export async function updateInfoAndIndexStateCell (infoData: BigInt, since?: Sin
     newIndexState.toString(),
     new InfoModel(newIndexState.getIndex(), config.infoDataType, infoData).toString()
   ]
+
+  let typeName = config.infoDataType === 2 ? 'block number' : (config.infoDataType === 1 ? 'timestamp' : 'quote')
+  console.log(`update: Update ${typeName}, IndexStateCell ${indexState.getIndex()} -> ${newIndexState.getIndex()}, InfoCell -> ${infoData} ${outputsData[1]}`)
 
   if (inputCapacity > needCapacity) {
     outputs.push({
