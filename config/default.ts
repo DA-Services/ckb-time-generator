@@ -11,7 +11,7 @@ const PayersPrivateKey = ''
 const CellDeps = [
   // index-state-cell-type & info-cell-type, this need to be updated every time the contracts changed
   {
-    outPoint: { txHash: '0x81cc4a241bd376071de687a60c1dc27761c2d2604999447bad82451ec80e6ec4', index: '0x0' },
+    outPoint: { txHash: '0x701d511603bff7db943b8a8d85c0b0f39bcaa31339a93df63e0358747f0a5cad', index: '0x0' },
     depType: 'depGroup',
   },
   // ckb signall lock

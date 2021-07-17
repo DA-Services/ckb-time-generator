@@ -24,7 +24,7 @@ export async function createInfoAndIndexStateCells (initInfoData: BigInt): Promi
     await generateInfoOutput(config.IndexStateTypeScript.args),
   ]
   let outputsData = [
-    new IndexStateModel(0, SUM_OF_INFO_CELLS).toString(),
+    new IndexStateModel(0).toString(),
     new InfoModel(0, config.infoDataType, initInfoData).toString(),
   ]
 

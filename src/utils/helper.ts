@@ -43,7 +43,7 @@ export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponen
     console.error(`The amount of index state cell is bigger than 1: ${indexStateCells.length}`)
   }
 
-  const indexStateCell = indexStateCells[ 0 ]
+  const indexStateCell = indexStateCells[0]
   const indexState = IndexStateModel.fromData(indexStateCell.output_data)
   return {
     indexStateCell,
