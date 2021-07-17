@@ -9,9 +9,9 @@ import { startGeneratorServer } from './logic/server'
  * precision: 1/10000 of 1 cent, 0.000001
  */
 async function getCkbPrice(): Promise<BigInt> {
-  const data = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nervos&vs_currencies=usd').then(res => res.json())
-  if (data?.nervos?.usd) {
-    return BigInt(data?.nervos?.usd * 100 * 10000 | 0)
+  const data = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd').then(res => res.json())
+  if (data?.['nervos-network']?.usd) {
+    return BigInt(data?.['nervos-network']?.usd * 100 * 10000 | 0)
   }
 
   throw new Error(`fetch nervos price error: ${data?.nervos?.usd}`)
