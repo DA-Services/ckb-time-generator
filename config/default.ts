@@ -11,12 +11,12 @@ const PayersPrivateKey = ''
 const CellDeps = [
   // index-state-cell-type & info-cell-type, this need to be updated every time the contracts changed
   {
-    outPoint: { txHash: '0x701d511603bff7db943b8a8d85c0b0f39bcaa31339a93df63e0358747f0a5cad', index: '0x0' },
+    outPoint: { txHash: '0x73d85dde3923672f0b157f0ba119e891065ecdf6d07d024be6240b8da68600a5', index: '0x0' },
     depType: 'depGroup',
   },
   // ckb signall lock
   {
-    outPoint: { txHash: '0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37', index: '0x0' },
+    outPoint: { txHash: '0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c', index: '0x0' },
     depType: 'depGroup',
   },
 ]
@@ -37,9 +37,9 @@ const InfoTypeScript = {
 console.log('using config: default')
 
 export default {
-  CKB_NODE_RPC: 'http://127.0.0.1:8114',
-  CKB_NODE_INDEXER: 'http://127.0.0.1:8116',
-  CKB_WS_URL: 'ws://127.0.0.1:8118',
+  CKB_NODE_RPC: 'http://172.31.97.75:8114',
+  CKB_NODE_INDEXER: 'http://172.31.97.75:8116',
+  CKB_WS_URL: 'ws://172.31.97.75:8118',
 
   infoDataType: INFO_DATA_TYPE.arbitrage,
 
