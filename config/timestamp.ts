@@ -3,19 +3,19 @@ import { INFO_DATA_TYPE } from '../src/utils/const'
 const PayersLockScript = {
   codeHash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
   hashType: 'type',
-  args: '0x6a21bc1b72d1e654f8e2ded400cffa46075494c6',
+  args: '0x2228dae340f587647362d31e3f04d7a51f8168dc',
 }
 
-const PayersPrivateKey = '0x6ac31f00f5a8f79534d1bb7b583c9c05fc1d2c7f015b1dc15c9e0e616bf260ea'
+const PayersPrivateKey = ''
 
 const IndexStateTypeScript = {
-  codeHash: '0x554cff969f3148e3c620749384004e9692e67c429f621554d139b505a281c7b8',
+  codeHash: '0xf47e324a660f35d453ae474a0e12acbfd1adadab72e8fc1ecc0ea7de3c96032a',
   hashType: 'type',
   args: '0x01',
 }
 
 const InfoTypeScript = {
-  codeHash: '0x96248cdefb09eed910018a847cfb51ad044c2d7db650112931760e3ef34a7e9a',
+  codeHash: '0x2e0e5b790cfb346bddc0e82a70f785e90d1537bbfdbdd25f6a3617cc760f887b',
   hashType: 'type',
   args: '0x01',
 }
