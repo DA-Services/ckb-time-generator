@@ -36,7 +36,7 @@ pipeline:
       - cd /data/code/ckb-time-generator
       - npm run reload_production
     when:
-      branch: [master]
+      branch: [master, main]
 
   # deploy_test_env
   deploy_test:
