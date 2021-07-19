@@ -1,0 +1,53 @@
+pipeline:
+  # restore node_modules from cache
+  restore-cache:
+    image: drillster/drone-volume-cache
+    restore: true
+    mount:
+      - ./node_modules
+    volumes:
+      - /tmp/cache/drone/ckb-time-generator:/cache
+
+  # build
+  build:
+    image: node:lts
+    commands:
+      - npm install
+      - npm run build
+
+  # write node_modules back to cache
+  rebuild-cache:
+    image: drillster/drone-volume-cache
+    rebuild: true
+    mount:
+      - ./node_modules
+    volumes:
+      - /tmp/cache/drone/ckb-time-generator:/cache
+
+  # deploy production env
+  deploy_production:
+    image: drillster/drone-rsync
+    hosts: [$HOST_IP]
+    user: root
+    secrets: [ rsync_key, host_ip ]
+    source: ./
+    target: /data/code/ckb-time-generator
+    script:
+      - cd /data/code/ckb-time-generator
+      - npm run reload_production
+    when:
+      branch: [master, main]
+
+  # deploy_test_env
+  deploy_test:
+    image: drillster/drone-rsync
+    hosts: [$HOST_IP]
+    user: root
+    secrets: [ rsync_key, host_ip ]
+    source: ./
+    target: /data/code/ckb-time-generator_test1
+    script:
+      - cd /data/code/ckb-time-generator_test1
+      - npm run reload_test1
+    when:
+      branch: [test]

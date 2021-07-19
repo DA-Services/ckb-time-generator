@@ -1,5 +1,5 @@
 {
-  "name": "time_script_generator",
+  "name": "ckb-time-generator",
   "version": "1.0.0",
   "description": "The generator of time_index_state_type_script and time_info_type_script",
   "main": "index.js",
@@ -15,7 +15,8 @@
     "dev:blocknumber": "NODE_CONFIG_DIR=./dist/config ts-node src/start-blocknumber.ts",
     "dev:quote": "NODE_CONFIG_DIR=./dist/config ts-node src/start-quote.ts",
     "dev": "ts-node src/start-blocknumber.ts",
-    "lint": "eslint src/**/*.js --fix"
+    "lint": "eslint src/**/*.js --fix",
+    "reload_production": "pm2 reload ecosystem.config.js"
   },
   "dependencies": {
     "@nervosnetwork/ckb-sdk-core": "^0.43.0",
