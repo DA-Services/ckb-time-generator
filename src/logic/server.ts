@@ -40,16 +40,10 @@ export async function startGeneratorServer ({ initInfoData, updateInfoDataFunc, 
     ws.send('{"id": 2, "jsonrpc": "2.0", "method": "subscribe", "params": ["new_tip_header"]}')
   })
 
-  let isLocked = false
   let prevTxHash = ''
   let waitedBlocks = 0
   ws.on('message', async function incoming (data) {
     console.log('onmessage', data)
-    if (isLocked) {
-      console.log('onmessage: Locked for waiting rpc response, skip this event ...')
-      return
-    }
-    isLocked = true
 
     if (JSON.parse(data).params) {
       const tipNumber = JSON.parse(JSON.parse(data).params.result).number
@@ -63,7 +57,6 @@ export async function startGeneratorServer ({ initInfoData, updateInfoDataFunc, 
         if (!tx || tx.txStatus.status !== 'committed') {
           console.info(`onmessage: Latest transaction is not committed, keep waiting for it.(waitedBlock: ${waitedBlocks})`)
           waitedBlocks++
-          isLocked = false
           return
         }
       }
@@ -73,14 +66,12 @@ export async function startGeneratorServer ({ initInfoData, updateInfoDataFunc, 
       const ret = await createOrUpdateInfoCells(indexStateCell)
       if (ret === 'retry') {
         console.info('onmessage: Some cells are occupied, try again later.')
-        isLocked = false
+        prevTxHash = ''
         return
+      } else {
+        prevTxHash = ret
       }
-
-      prevTxHash = ret
     }
-
-    isLocked = false
   })
 
   ws.on('close', async function close (code, reason) {
