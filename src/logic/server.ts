@@ -66,10 +66,11 @@ export async function startGeneratorServer ({ initInfoData, updateInfoDataFunc, 
       const ret = await createOrUpdateInfoCells(indexStateCell)
       if (ret === 'retry') {
         console.info('onmessage: Some cells are occupied, try again later.')
+        prevTxHash = ''
         return
+      } else {
+        prevTxHash = ret
       }
-
-      prevTxHash = ret
     }
   })
 
