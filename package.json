@@ -8,12 +8,12 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-timestamp.js",
-    "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-blocknumber.js",
-    "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-quote.js",
-    "dev:timestamp": "NODE_CONFIG_DIR=./dist/config ts-node src/start-timestamp.ts",
-    "dev:blocknumber": "NODE_CONFIG_DIR=./dist/config ts-node src/start-blocknumber.ts",
-    "dev:quote": "NODE_CONFIG_DIR=./dist/config ts-node src/start-quote.ts",
+    "start:timestamp": "tsc && node dist/src/start-timestamp.js",
+    "start:blocknumber": "tsc && node dist/src/start-blocknumber.js",
+    "start:quote": "tsc && node dist/src/start-quote.js",
+    "dev:timestamp": "ts-node src/start-timestamp.ts",
+    "dev:blocknumber": "ts-node src/start-blocknumber.ts",
+    "dev:quote": "ts-node src/start-quote.ts",
     "dev": "ts-node src/start-blocknumber.ts",
     "lint": "eslint src/**/*.js --fix",
     "reload_production": "pm2 reload ecosystem.config.js"

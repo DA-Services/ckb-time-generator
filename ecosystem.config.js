@@ -18,7 +18,6 @@ function generateApp (name, entry, env) {
     listen_timeout: 10 * 1000, // ms
     env: {
       NODE_ENV: 'production',
-      NODE_CONFIG_DIR: './dist/config',
     }
   }
 }

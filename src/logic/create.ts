@@ -51,6 +51,7 @@ export async function createInfoAndIndexStateCells (initInfoData: BigInt): Promi
   rawTx.witnesses = rawTx.inputs.map((_, _i) => EMPTY_WITNESS_ARGS)
 
   await ckb.loadDeps()
+  // @ts-ignore
   const signedRawTx = ckb.signTransaction(config.PayersPrivateKey)(rawTx)
   // console.log(`create: Generate signed transaction:`, inspect(signedRawTx, { depth: 3 }))
 

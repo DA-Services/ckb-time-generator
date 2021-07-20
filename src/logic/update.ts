@@ -87,6 +87,7 @@ export async function updateInfoAndIndexStateCell (infoData: BigInt, since?: Sin
   rawTx.witnesses = rawTx.inputs.map((_, _i) => EMPTY_WITNESS_ARGS)
 
   await ckb.loadDeps()
+  // @ts-ignore
   const signedRawTx = ckb.signTransaction(config.PayersPrivateKey)(rawTx)
   // console.log('signedRawTx:', inspect(signedRawTx, { depth: 3 }))
 

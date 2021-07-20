@@ -1,4 +1,4 @@
-import { INFO_DATA_TYPE } from '../src/utils/const'
+// import { INFO_DATA_TYPE } from '../src/utils/const'
 
 const PayersLockScript = {
   codeHash: '',
@@ -36,12 +36,12 @@ const InfoTypeScript = {
 // ⚠️ rebuild is required for dev:* scripts, because node-config do not recognise typescript files.
 console.log('using config: default')
 
-export default {
+module.exports = {
   CKB_NODE_RPC: 'http://172.31.97.75:8114',
   CKB_NODE_INDEXER: 'http://172.31.97.75:8116',
   CKB_WS_URL: 'ws://172.31.97.75:8118',
 
-  infoDataType: INFO_DATA_TYPE.arbitrage,
+  infoDataType: 0, // INFO_DATA_TYPE.arbitrage,
 
   PayersLockScript, // currently AlwaysSuccessLockScript, should be changed to our own lock script to prevent others' attack todo:
   PayersPrivateKey,

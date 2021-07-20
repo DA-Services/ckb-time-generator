@@ -1,4 +1,4 @@
-import { INFO_DATA_TYPE } from '../src/utils/const'
+// import { INFO_DATA_TYPE } from '../src/utils/const'
 
 const PayersLockScript = {
   codeHash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8',
@@ -22,8 +22,8 @@ const InfoTypeScript = {
 
 console.log('using config: timestamp')
 
-export default {
-  infoDataType: INFO_DATA_TYPE.timestamp,
+module.exports = {
+  infoDataType: 1, // INFO_DATA_TYPE.timestamp,
   IndexStateTypeScript,
   InfoTypeScript,
   PayersLockScript,
