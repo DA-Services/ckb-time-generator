@@ -11,9 +11,9 @@
     "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-timestamp.js",
     "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-blocknumber.js",
     "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-quote.js",
-    "dev:timestamp": "NODE_CONFIG_DIR=./dist/config ts-node src/start-timestamp.ts",
-    "dev:blocknumber": "NODE_CONFIG_DIR=./dist/config ts-node src/start-blocknumber.ts",
-    "dev:quote": "NODE_CONFIG_DIR=./dist/config ts-node src/start-quote.ts",
+    "dev:timestamp": "NODE_ENV=testnet ts-node src/start-timestamp.ts",
+    "dev:blocknumber": "NODE_ENV=testnet ts-node src/start-blocknumber.ts",
+    "dev:quote": "NODE_ENV=testnet ts-node src/start-quote.ts",
     "dev": "ts-node src/start-blocknumber.ts",
     "lint": "eslint src/**/*.js --fix",
     "reload_production": "pm2 reload ecosystem.config.js"
@@ -29,6 +29,7 @@
   "devDependencies": {
     "@nervosnetwork/ckb-types": "^0.43.0",
     "@types/node": "^16.0.1",
+    "@types/ws": "^7.4.7",
     "eslint": "^7.30.0",
     "husky": "^7.0.1"
   },

@@ -1,6 +1,5 @@
 process.env.HOSTNAME = 'quote'
 // @ts-ignore
-import { CKBComponents } from '@nervosnetwork/ckb-types'
 import fetch from 'node-fetch'
 import { startGeneratorServer } from './logic/server'
 

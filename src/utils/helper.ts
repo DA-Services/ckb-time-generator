@@ -33,6 +33,7 @@ export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponen
   const indexStateCells = await getCells(config.IndexStateTypeScript, 'type')
 
   if (!indexStateCells || indexStateCells.length === 0) {
+    console.warn(`helper: The amount of IndexStateCell is 0, will create one.`)
     return {
       indexStateCell: null,
       indexState: null,
@@ -40,7 +41,7 @@ export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponen
   }
 
   if (indexStateCells.length > 1) {
-    console.error(`The amount of index state cell is bigger than 1: ${indexStateCells.length}`)
+    console.error(`helper: The amount of IndexStateCell is bigger than 1: ${indexStateCells.length}`)
   }
 
   const indexStateCell = indexStateCells[0]
@@ -89,9 +90,11 @@ export const collectInputs = (liveCells, needCapacity, since) => {
       break
     }
   }
+
   if (sum < needCapacity) {
-    throw Error('Capacity not enough')
+    throw Error(`capacity not enough. (expected: ${needCapacity}, current: ${sum})`)
   }
+
   return {inputs, capacity: sum}
 }
 
