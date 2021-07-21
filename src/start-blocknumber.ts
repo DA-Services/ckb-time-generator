@@ -1,6 +1,5 @@
 process.env.HOSTNAME = 'blocknumber'
 // @ts-ignore
-import { CKBComponents } from '@nervosnetwork/ckb-types'
 import { startGeneratorServer } from './logic/server'
 import { generateBlockNumberSince} from './utils/helper'
 import { getLatestBlockNumber } from './utils/rpc'
