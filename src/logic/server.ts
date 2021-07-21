@@ -36,10 +36,51 @@ async function createOrUpdateInfoCells({ initInfoData, updateInfoDataFunc, since
   }
 }
 
+let pingTimer;
+let pingId = 1000;
+let pingHistory: { id: number, pingAt: number, pongAt: number }[] = [];
+async function heartbeat(ws: WebSocket) {
+  if (pingTimer) {
+    clearTimeout(pingTimer)
+	}
+
+  pingTimer = setTimeout(() => {
+    let now = Date.now()
+    let lastPing = pingHistory[pingHistory.length - 1]
+
+    if (!lastPing || lastPing?.pongAt > 0) {
+      // Last ping has response, continue ping.
+      console.log(`ws: send ping[${pingId}]`)
+      // Keep ping history for last 600 seconds.
+      if (pingHistory.length >= 120) {
+        pingHistory.shift()
+      }
+
+      ws.send(`{ "id": ${pingId}, "jsonrpc": "2.0", "method": "sync_state", "params": [] }`)
+      pingHistory.push({ id: pingId, pingAt: now, pongAt: 0 })
+
+      pingId++
+    } else {
+      // Last ping has no response, check if it is timeout.
+      if ((now - lastPing?.pingAt) > 10 * 1000) {
+        // Treat server as timeout if no reponse for 30 seconds.
+        console.error('ws: Server timeout, try to reconnect ...')
+        clearTimeout(pingTimer)
+        ws.terminate()
+      }
+    }
+
+    heartbeat(ws)
+  }, 5000)
+}
+
 let timeoutTimer;
 export function startGeneratorServer (serverParams: ServerParams) {
   console.log(`ws: connecting to ${config.CKB_WS_URL} ...`)
   let ws = new WebSocket(config.CKB_WS_URL)
+
+  pingId = 1000;
+  pingHistory = [];
 
   // Retry if connecting timeout.
   timeoutTimer = setTimeout(() => {
@@ -53,41 +94,13 @@ export function startGeneratorServer (serverParams: ServerParams) {
   // await createOrUpdateInfoCells(indexStateCell)
 
   let pingTimer
-  let pingId = 1000;
-  let pingHistory: { id: number, pingAt: number, pongAt: number }[] = [];
   ws.on('open', () => {
     console.info('ws: connected')
     clearTimeout(timeoutTimer)
 
     ws.send('{"id": 1, "jsonrpc": "2.0", "method": "subscribe", "params": ["new_tip_header"]}')
 
-    // Repeatedly send ping message
-    pingTimer = setInterval(async () => {
-      let now = Date.now()
-      let lastPing = pingHistory[pingHistory.length - 1]
-
-      if (!lastPing || lastPing?.pongAt > 0) {
-        // Last ping has response, continue ping.
-        console.log(`ws: send ping[${pingId}]`)
-        // Keep ping history for last 600 seconds.
-        if (pingHistory.length >= 120) {
-          pingHistory.shift()
-        }
-
-        ws.send(`{ "id": ${pingId}, "jsonrpc": "2.0", "method": "sync_state", "params": [] }`)
-        pingHistory.push({ id: pingId, pingAt: now, pongAt: 0 })
-
-        pingId++
-      } else {
-        // Last ping has no response, check if it is timeout.
-        if ((now - lastPing?.pingAt) > 10 * 1000) {
-          // Treat server as timeout if no reponse for 30 seconds.
-          console.error('ws: Server timeout, try to reconnect ...')
-          clearTimeout(pingTimer)
-          ws.terminate()
-        }
-      }
-    }, 5000)
+    heartbeat(ws)
   })
 
   let prevTxHash = ''
