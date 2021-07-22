@@ -96,6 +96,8 @@ function eventHeartbeat(ws: WebSocket, timeout: number) {
   }
 
   eventPingTimer = setTimeout(() => {
+    console.error('ws: there is not any event from CKB node for too long.')
+
     notifyWecom(`Service ckb-time-generator error:\n
 > Server IP: ${getCurrentIP()}
 > CKB WebSocket URL: ${config.CKB_WS_URL}
@@ -164,7 +166,7 @@ export function startGeneratorServer (serverParams: ServerParams) {
 
     } else if (data.method === 'subscribe' && data.params?.result) {
       // Recived notify message
-      eventHeartbeat(ws, TIME_1_M)
+      eventHeartbeat(ws, TIME_1_M * 3)
 
       let result
       try {
