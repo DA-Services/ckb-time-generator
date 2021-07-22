@@ -6,6 +6,8 @@ import { InfoModel } from '../model/info_model'
 import { INFO_CELL_CAPACITY } from './const'
 import { parseIndex, toHex, uint32ToBe } from './hex'
 import { getCells } from './rpc'
+import fetch from 'node-fetch'
+import { networkInterfaces } from 'os'
 
 export async function generateIndexStateOutput (args) {
   return {
@@ -33,6 +35,7 @@ export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponen
   const indexStateCells = await getCells(config.IndexStateTypeScript, 'type')
 
   if (!indexStateCells || indexStateCells.length === 0) {
+    console.warn(`helper: The amount of IndexStateCell is 0, will create one.`)
     return {
       indexStateCell: null,
       indexState: null,
@@ -40,7 +43,7 @@ export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponen
   }
 
   if (indexStateCells.length > 1) {
-    console.error(`The amount of index state cell is bigger than 1: ${indexStateCells.length}`)
+    console.error(`helper: The amount of IndexStateCell is bigger than 1: ${indexStateCells.length}`)
   }
 
   const indexStateCell = indexStateCells[0]
@@ -89,9 +92,11 @@ export const collectInputs = (liveCells, needCapacity, since) => {
       break
     }
   }
+
   if (sum < needCapacity) {
-    throw Error('Capacity not enough')
+    throw Error(`capacity not enough. (expected: ${needCapacity}, current: ${sum})`)
   }
+
   return {inputs, capacity: sum}
 }
 
@@ -102,4 +107,42 @@ export const generateTimestampSince = timestamp => {
 
 export const generateBlockNumberSince = (blockNumber: BigInt) => {
   return toHex(blockNumber)
+}
+
+export async function notifyWecom(msg: string) {
+  try {
+    let res = await fetch(`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${config.WECOM_API_KEY}`, {
+      method: 'post',
+      body: JSON.stringify({
+        msgtype: 'markdown',
+        markdown: {
+          content: msg,
+          // mentioned_list: ["@all"],
+        }
+      })
+    })
+    if (res.status >= 400) {
+      console.error(`helper: send Wecom notify failed, response ${res.status} ${res.statusText}`)
+    }
+  } catch (e) {
+    console.error('helper: send Wecom notify failed:', e)
+  }
+}
+
+export function getCurrentIP() {
+  let nets = networkInterfaces()
+  let address;
+
+  for (const name of Object.keys(nets)) {
+    if (name.startsWith('eno')) {
+      for (const net of nets[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          address = net.address
+          break
+        }
+      }
+    }
+  }
+
+  return address
 }

@@ -40,6 +40,7 @@ export default {
   CKB_NODE_RPC: 'http://172.31.97.75:8114',
   CKB_NODE_INDEXER: 'http://172.31.97.75:8116',
   CKB_WS_URL: 'ws://172.31.97.75:8118',
+  WECOM_API_KEY: '',
 
   infoDataType: INFO_DATA_TYPE.arbitrage,
 

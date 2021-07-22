@@ -96,10 +96,6 @@ export async function updateInfoAndIndexStateCell (infoData: BigInt, since?: Sin
     return txHash
   } catch (e) {
     console.error('update: Send transaction failed:', e.message)
-    if (e.message.search('"code":-301')) {
-      return 'retry'
-    } else {
-      throw e
-    }
+    throw e
   }
 }
