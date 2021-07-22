@@ -56,7 +56,8 @@ async function heartbeat(ws: WebSocket) {
         pingHistory.shift()
       }
 
-      ws.send(`{ "id": ${pingId}, "jsonrpc": "2.0", "method": "sync_state", "params": [] }`)
+      // ⚠️ Different method may has performance issue, ensure testing on cloud
+      ws.send(`{ "id": ${pingId}, "jsonrpc": "2.0", "method": "get_tip_header", "params": [] }`)
       pingHistory.push({ id: pingId, pingAt: now, pongAt: 0 })
 
       pingId++
@@ -115,7 +116,7 @@ export function startGeneratorServer (serverParams: ServerParams) {
       return
     }
 
-    if (data.id && data.result?.best_known_block_number) {
+    if (data.id && data.result?.number) {
       // Recived pong message
       console.log(`ws: received pong[${data.id}]`)
       let item = pingHistory.find((item) => {
@@ -131,18 +132,18 @@ export function startGeneratorServer (serverParams: ServerParams) {
       try {
         result = JSON.parse(data.params.result)
       } catch (e) {
-        console.error('Parse params of message failed, skip.')
+        console.error('ws: parse params of message failed, skip.')
         return
       }
 
       console.log(`ws: received notify of subscription at height ${result.number} `)
       if (prevTxHash && waitedBlocks <= 5) {
-        console.info('onmessage: Checking if latest transaction is committed ...')
+        console.info('ws: checking if latest transaction is committed ...')
 
         const tx = await getTransaction(prevTxHash)
         // tx maybe null
         if (!tx || tx.txStatus.status !== 'committed') {
-          console.info(`onmessage: Latest transaction is not committed, keep waiting for it.(waitedBlock: ${waitedBlocks})`)
+          console.info(`ws: last transaction is not committed, keep waiting for it.(waitedBlock: ${waitedBlocks})`)
           waitedBlocks++
           return
         }
