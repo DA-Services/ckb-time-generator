@@ -6,6 +6,7 @@ import { InfoModel } from '../model/info_model'
 import { INFO_CELL_CAPACITY } from './const'
 import { parseIndex, toHex, uint32ToBe } from './hex'
 import { getCells } from './rpc'
+import fetch from 'node-fetch'
 
 export async function generateIndexStateOutput (args) {
   return {
@@ -105,4 +106,24 @@ export const generateTimestampSince = timestamp => {
 
 export const generateBlockNumberSince = (blockNumber: BigInt) => {
   return toHex(blockNumber)
+}
+
+export async function notifyWecom(msg: string) {
+  try {
+    let res = await fetch(`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${config.WECOM_API_KEY}`, {
+      method: 'post',
+      body: JSON.stringify({
+        msgtype: 'text',
+        text: {
+          content: msg,
+          mentioned_list: ["@all"],
+        }
+      })
+    })
+    if (res.status >= 400) {
+      console.error(`helper: send Wecom notify failed, response ${res.status} ${res.statusText}`)
+    }
+  } catch (e) {
+    console.error('helper: send Wecom notify failed:', e)
+  }
 }

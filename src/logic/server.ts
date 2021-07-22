@@ -2,7 +2,7 @@
 import { CKBComponents } from '@nervosnetwork/ckb-types'
 import WebSocket from 'ws'
 import config from '../config'
-import { getIndexStateCell } from '../utils/helper'
+import { getIndexStateCell, notifyWecom } from '../utils/helper'
 import { createInfoAndIndexStateCells } from './create'
 import { SinceFunc, updateInfoAndIndexStateCell } from './update'
 import { getTransaction } from '../utils/rpc'
@@ -37,9 +37,12 @@ async function createOrUpdateInfoCells({ initInfoData, updateInfoDataFunc, since
 }
 
 let pingTimer;
+let eventPingTimer;
+
+let shouldNotify = false;
 let pingId = 1000;
 let pingHistory: { id: number, pingAt: number, pongAt: number }[] = [];
-async function heartbeat(ws: WebSocket) {
+function heartbeat(ws: WebSocket) {
   if (pingTimer) {
     clearTimeout(pingTimer)
 	}
@@ -66,7 +69,13 @@ async function heartbeat(ws: WebSocket) {
       if ((now - lastPing?.pingAt) > 10 * 1000) {
         // Treat server as timeout if no reponse for 30 seconds.
         console.error('ws: Server timeout, try to reconnect ...')
+        if (shouldNotify) {
+          shouldNotify = false
+          notifyWecom(`Websocket ping CKB node ${config.CKB_WS_URL} timeout, try to reconnect ...`)
+        }
+
         clearTimeout(pingTimer)
+        clearTimeout(eventPingTimer)
         ws.terminate()
       }
     }
@@ -75,10 +84,31 @@ async function heartbeat(ws: WebSocket) {
   }, 5000)
 }
 
+function eventHeartbeat(ws) {
+  console.log(`ws: received event pong`)
+
+  if (eventPingTimer) {
+    clearTimeout(eventPingTimer)
+  }
+
+  eventPingTimer = setTimeout(() => {
+    if (shouldNotify) {
+      shouldNotify = false
+      notifyWecom(`Websocket has no event from CKB node ${config.CKB_WS_URL} for 60 seconds, try to reconnect ...`)
+    }
+
+    clearTimeout(pingTimer)
+    clearTimeout(eventPingTimer)
+    ws.terminate()
+  }, 60000)
+}
+
 let timeoutTimer;
 export function startGeneratorServer (serverParams: ServerParams) {
+  let ws: WebSocket;
+
   console.log(`ws: connecting to ${config.CKB_WS_URL} ...`)
-  let ws = new WebSocket(config.CKB_WS_URL)
+  ws = new WebSocket(config.CKB_WS_URL)
 
   pingId = 1000;
   pingHistory = [];
@@ -94,14 +124,15 @@ export function startGeneratorServer (serverParams: ServerParams) {
   // const {indexStateCell} = await getIndexStateCell()
   // await createOrUpdateInfoCells(indexStateCell)
 
-  let pingTimer
   ws.on('open', () => {
     console.info('ws: connected')
     clearTimeout(timeoutTimer)
+    shouldNotify = true
 
     ws.send('{"id": 1, "jsonrpc": "2.0", "method": "subscribe", "params": ["new_tip_header"]}')
 
     heartbeat(ws)
+    eventHeartbeat(ws)
   })
 
   let prevTxHash = ''
@@ -128,6 +159,8 @@ export function startGeneratorServer (serverParams: ServerParams) {
 
     } else if (data.method === 'subscribe' && data.params?.result) {
       // Recived notify message
+      eventHeartbeat(ws)
+
       let result
       try {
         result = JSON.parse(data.params.result)
@@ -160,9 +193,19 @@ export function startGeneratorServer (serverParams: ServerParams) {
     }
   })
 
-  ws.on('close', async (code, reason) => {
+  ws.on('close', (code, reason) => {
     console.warn(`ws: disconnected, retry connecting. code: ${code} reason: ${reason}`)
-    startGeneratorServer(serverParams)
+    setTimeout(() => {
+      startGeneratorServer(serverParams)
+    }, 10000)
+  })
+
+  ws.on('error', (err) => {
+    console.error(`ws: connect to ${config.CKB_WS_URL} failed. error message: ${err}`, )
+    if (shouldNotify) {
+      shouldNotify = false
+      notifyWecom(`Websocket connection of node ${config.CKB_WS_URL} occurred error: ${err}`)
+    }
   })
 
   return ws
