@@ -134,7 +134,7 @@ export function getCurrentIP() {
   let address;
 
   for (const name of Object.keys(nets)) {
-    if (name.startsWith('eno')) {
+    if (name.startsWith('eno') || name.startsWith('eth')) {
       for (const net of nets[name]) {
         if (net.family === 'IPv4' && !net.internal) {
           address = net.address
