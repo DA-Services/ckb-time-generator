@@ -40,8 +40,8 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
       },
       body,
     })
-    res = await res.json()
-    return res.result.objects
+    let data = await res.json()
+    return data.result.objects
   } catch (error) {
     console.error('error', error)
   }
