@@ -7,6 +7,7 @@ import { INFO_CELL_CAPACITY } from './const'
 import { parseIndex, toHex, uint32ToBe } from './hex'
 import { getCells } from './rpc'
 import fetch from 'node-fetch'
+import { networkInterfaces } from 'os'
 
 export async function generateIndexStateOutput (args) {
   return {
@@ -113,10 +114,10 @@ export async function notifyWecom(msg: string) {
     let res = await fetch(`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${config.WECOM_API_KEY}`, {
       method: 'post',
       body: JSON.stringify({
-        msgtype: 'text',
-        text: {
+        msgtype: 'markdown',
+        markdown: {
           content: msg,
-          mentioned_list: ["@all"],
+          // mentioned_list: ["@all"],
         }
       })
     })
@@ -126,4 +127,22 @@ export async function notifyWecom(msg: string) {
   } catch (e) {
     console.error('helper: send Wecom notify failed:', e)
   }
+}
+
+export function getCurrentIP() {
+  let nets = networkInterfaces()
+  let address;
+
+  for (const name of Object.keys(nets)) {
+    if (name.startsWith('eno')) {
+      for (const net of nets[name]) {
+        if (net.family === 'IPv4' && !net.internal) {
+          address = net.address
+          break
+        }
+      }
+    }
+  }
+
+  return address
 }

@@ -6,3 +6,7 @@ export enum INFO_DATA_TYPE {
   timestamp = 1,
   blocknumber = 2,
 }
+
+export const TIME_1_M = 60 * 1000;
+export const TIME_30_S = 30 * 1000;
+export const TIME_5_S = 5 * 1000;
