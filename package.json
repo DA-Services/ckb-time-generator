@@ -8,15 +8,16 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-timestamp.js",
-    "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-blocknumber.js",
-    "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config  node dist/src/start-quote.js",
+    "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config node dist/src/start-timestamp.js",
+    "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config node dist/src/start-blocknumber.js",
+    "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config node dist/src/start-quote.js",
     "dev:timestamp": "NODE_ENV=testnet ts-node src/start-timestamp.ts",
     "dev:blocknumber": "NODE_ENV=testnet ts-node src/start-blocknumber.ts",
     "dev:quote": "NODE_ENV=testnet ts-node src/start-quote.ts",
     "dev": "ts-node src/start-blocknumber.ts",
     "lint": "eslint src/**/*.js --fix",
-    "reload_production": "pm2 reload ecosystem.config.js"
+    "reload_production": "NODE_ENV=production pm2 reload ecosystem.config.js",
+    "reload_testnet": "NODE_ENV=testnet pm2 reload ecosystem.config.js"
   },
   "dependencies": {
     "@nervosnetwork/ckb-sdk-core": "^0.43.0",
