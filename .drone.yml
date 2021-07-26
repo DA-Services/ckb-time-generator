@@ -41,13 +41,13 @@ pipeline:
   # deploy_test_env
   deploy_test:
     image: drillster/drone-rsync
-    hosts: [$HOST_IP]
+    hosts: [$HOST_IP_TEST]
     user: root
-    secrets: [ rsync_key, host_ip ]
+    secrets: [ rsync_key, host_ip_test ]
     source: ./
-    target: /data/code/ckb-time-generator_test1
+    target: /mnt/ckb-time-generator
     script:
-      - cd /data/code/ckb-time-generator_test1
-      - npm run reload_test1
+      - cd /mnt/ckb-time-generator
+      - npm run reload_testnet
     when:
-      branch: [test]
+      branch: [test, develop]

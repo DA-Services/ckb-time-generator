@@ -1,5 +1,4 @@
 const packageJson = require('./package.json')
-const abcConfig = require('./abc.config')
 
 function generateApp (name, entry, env) {
   const isProd = env === 'production'
@@ -17,7 +16,7 @@ function generateApp (name, entry, env) {
     kill_timeout: 10 * 1000, // ms
     listen_timeout: 10 * 1000, // ms
     env: {
-      NODE_ENV: 'production',
+      NODE_ENV: env,
       NODE_CONFIG_DIR: './dist/config',
     }
   }
@@ -29,8 +28,8 @@ module.exports = {
    * http://pm2.keymetrics.io/docs/usage/application-declaration/
    */
   apps: [
-    generateApp('time', 'dist/src/start-timestamp.js', 'production'),
-    generateApp('block', 'dist/src/start-blocknumber.js', 'production'),
-    generateApp('quote', 'dist/src/start-quote.js', 'production'),
+    generateApp('time', 'dist/src/start-timestamp.js', process.env.NODE_ENV),
+    generateApp('block', 'dist/src/start-blocknumber.js', process.env.NODE_ENV),
+    generateApp('quote', 'dist/src/start-quote.js', process.env.NODE_ENV),
   ]
 }
