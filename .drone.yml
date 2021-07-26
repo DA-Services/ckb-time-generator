@@ -33,6 +33,8 @@ pipeline:
     source: ./
     target: /data/code/ckb-time-generator
     script:
+      - 'export NVM_DIR="$HOME/.nvm"'
+      - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
       - cd /data/code/ckb-time-generator
       - npm run reload_production
     when:
