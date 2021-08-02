@@ -2,7 +2,7 @@
 import { CKBComponents } from '@nervosnetwork/ckb-types'
 import WebSocket from 'ws'
 import config from '../config'
-import { getCurrentIP, getIndexStateCell, notifyWecom } from '../utils/helper'
+import { getIndexStateCell, notifyLark } from '../utils/helper'
 import { createInfoAndIndexStateCells } from './create'
 import { SinceFunc, updateInfoAndIndexStateCell } from './update'
 import { getTransaction } from '../utils/rpc'
@@ -72,10 +72,7 @@ function heartbeat(ws: WebSocket) {
         console.error('ws: Server timeout, try to reconnect ...')
         if (shouldNotify) {
           shouldNotify = false
-          notifyWecom(`Service ckb-time-generator error:\n
-> Server IP: ${getCurrentIP()}
-> CKB WebSocket URL: ${config.CKB_WS_URL}
-> Reason: Heartbeat of CKB node is timeout.`)
+          notifyLark('Heartbeat of CKB node is timeout.')
         }
 
         clearTimeout(pingTimer)
@@ -98,10 +95,7 @@ function eventHeartbeat(ws: WebSocket, timeout: number) {
   eventPingTimer = setTimeout(() => {
     console.error('ws: there is not any event from CKB node for too long.')
 
-    notifyWecom(`Service ckb-time-generator error:\n
-> Server IP: ${getCurrentIP()}
-> CKB WebSocket URL: ${config.CKB_WS_URL}
-> Reason: No event from CKB node for 60 seconds.`)
+    notifyLark('No event from CKB node for 60 seconds.')
 
     // Gradually reduce the frequency of notifications.
     eventHeartbeat(ws, timeout * 3)
@@ -211,10 +205,7 @@ export function startGeneratorServer (serverParams: ServerParams) {
     console.error(`ws: connect to ${config.CKB_WS_URL} failed. error message: ${err}`, )
     if (shouldNotify) {
       shouldNotify = false
-      notifyWecom(`Service ckb-time-generator error:\n
-> Server IP: ${getCurrentIP()}
-> CKB WebSocket URL: ${config.CKB_WS_URL}
-> Reason: Websocket connection error: ${err}`)
+      notifyLark(`Websocket connection error: ${err}`)
     }
   })
 
