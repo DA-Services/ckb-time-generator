@@ -116,7 +116,10 @@ export async function notifyWecom(msg: string) {
       body: JSON.stringify({
         msgtype: 'markdown',
         markdown: {
-          content: msg,
+          content: `Service ckb-time-generator error:\n
+> Server IP: ${getCurrentIP()}
+> CKB WebSocket URL: ${config.CKB_WS_URL}
+> Reason: ${msg}`,
           // mentioned_list: ["@all"],
         }
       })
@@ -126,6 +129,41 @@ export async function notifyWecom(msg: string) {
     }
   } catch (e) {
     console.error('helper: send Wecom notify failed:', e)
+  }
+}
+
+export async function notifyLark(msg: string) {
+  try {
+    let content: any[] = [
+      [{tag: 'text', un_escaped: true, text: `server_ip: ${getCurrentIP()}`}],
+      [{tag: 'text', un_escaped: true, text: `ckb_ws_url: ${config.CKB_WS_URL}`}],
+      [{tag: 'text', un_escaped: true, text: `reason: ${msg}`}],
+    ]
+    if (process.env.NODE_ENV === 'production') {
+      content.push([{tag: 'at', user_id: 'all'}])
+    }
+
+    let res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LARK_API_KEY}`, {
+      method: 'post',
+      body: JSON.stringify({
+        email: 'xieaolin@gmail.com',
+        msg_type: 'post',
+        content: {
+          post: {
+            zh_cn: {
+              title: `=== THQ Node 服务告警 (${process.env.NODE_ENV}) ===`,
+              content,
+            }
+          },
+        }
+      })
+    })
+
+    if (res.status >= 400) {
+      console.error(`helper: send Lark notify failed, response ${res.status} ${res.statusText}`)
+    }
+  } catch (e) {
+    console.error('helper: send Lark notify failed:', e)
   }
 }
 
