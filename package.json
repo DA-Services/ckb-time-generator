@@ -22,10 +22,13 @@
   "dependencies": {
     "@nervosnetwork/ckb-sdk-core": "^0.43.0",
     "@nervosnetwork/ckb-sdk-utils": "^0.43.0",
+    "@types/yargs": "^17.0.2",
     "config": "^3.3.6",
+    "dayjs": "^1.10.6",
     "node-fetch": "^2.6.1",
     "typescript": "^4.3.5",
-    "ws": "^7.5.2"
+    "ws": "^7.5.2",
+    "yargs": "^17.1.0"
   },
   "devDependencies": {
     "@nervosnetwork/ckb-types": "^0.43.0",

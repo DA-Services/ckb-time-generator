@@ -1,13 +1,33 @@
-// @ts-ignore
-import { CKBComponents } from '@nervosnetwork/ckb-types'
 import config from '../config'
 import { IndexStateModel } from '../model/index_state_model'
 import { InfoModel } from '../model/info_model'
-import { INFO_CELL_CAPACITY } from './const'
+import { CellType, INFO_CELL_CAPACITY } from './const'
 import { parseIndex, toHex, uint32ToBe } from './hex'
 import { getCells } from './rpc'
 import fetch from 'node-fetch'
 import { networkInterfaces } from 'os'
+
+export function typeToCellType(type: string) {
+  let key = type[0].toUpperCase() + type.slice(1)
+  if (!CellType[key]) {
+    throw new Error(`Can not find cell type from type: ${type}`)
+  }
+  return CellType[key]
+}
+
+export function getTypeScriptOfInfoCell(type: CellType): CKBComponents.Script {
+  return {
+    ...config.InfoTypeScript,
+    args: type,
+  }
+}
+
+export function getTypeScriptOfIndexStateCell(type: CellType): CKBComponents.Script {
+  return {
+    ...config.IndexStateTypeScript,
+    args: type,
+  }
+}
 
 export async function generateIndexStateOutput (args) {
   return {
@@ -31,7 +51,7 @@ export async function generateInfoOutput (args) {
   }
 }
 
-export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponents.Cell, indexState: IndexStateModel}> {
+export async function getIndexStateCell (): Promise<{indexStateCell: IndexerLiveCell, indexState: IndexStateModel}> {
   const indexStateCells = await getCells(config.IndexStateTypeScript, 'type')
 
   if (!indexStateCells || indexStateCells.length === 0) {
@@ -47,14 +67,14 @@ export async function getIndexStateCell (): Promise<{indexStateCell: CKBComponen
   }
 
   const indexStateCell = indexStateCells[0]
-  const indexState = IndexStateModel.fromData(indexStateCell.output_data)
+  const indexState = IndexStateModel.fromHex(indexStateCell.output_data)
   return {
     indexStateCell,
     indexState: indexState
   }
 }
 
-export async function getInfoCell (infoCellIndex): Promise<{infoCell: CKBComponents.Cell, infoModel: InfoModel}> {
+export async function getInfoCell (infoCellIndex): Promise<{infoCell: IndexerLiveCell, infoModel: InfoModel}> {
   let infoCells = await getCells(config.InfoTypeScript, 'type')
 
   if (infoCells && infoCells.length !== 0) {
