@@ -32,7 +32,7 @@ export class IndexStateModel {
     return new IndexStateModel(nextIndex)
   }
 
-  static fromData(hex: string): IndexStateModel {
+  static fromHex(hex: string): IndexStateModel {
     const buf = Buffer.from(remove0x(hex), 'hex')
     if (buf.length != IndexStateDataLength) {
       throw new Error(`IndexState data length error.(expected: ${IndexStateDataLength}, current: ${buf.length})`)

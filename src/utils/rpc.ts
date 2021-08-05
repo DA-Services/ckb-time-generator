@@ -12,7 +12,7 @@ export const ckb = new CKB(config.CKB_NODE_RPC)
  * @param type 'type'|'lock'
  * @param filter
  */
-export async function getCells (script: CKBComponents.Script, type, filter?): Promise<CKBComponents.Cell[]> {
+export async function getCells (script: CKBComponents.Script, type, filter?): Promise<IndexerLiveCell[]> {
   let payload = {
     id: 1,
     jsonrpc: '2.0',
@@ -31,6 +31,7 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
       '0xff',
     ],
   }
+
   const body = JSON.stringify(payload, null, '  ')
   try {
     let res = await fetch(config.CKB_NODE_INDEXER, {
@@ -41,7 +42,13 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
       body,
     })
     let data = await res.json()
+
+    if (data.error) {
+      throw new Error(`get_cells response error.(code: ${data.error.code}, message: ${data.error.message})`)
+    }
+
     return data.result.objects
+
   } catch (error) {
     console.error('error', error)
   }
@@ -49,6 +56,10 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
 
 export async function getTransaction(txHash: string): Promise<CKBComponents.TransactionWithStatus> {
   return ckb.rpc.getTransaction(txHash)
+}
+
+export async function getBlockNumber(blockNumber: string | bigint): Promise<CKBComponents.Block> {
+  return ckb.rpc.getBlockByNumber(blockNumber)
 }
 
 export async function getLatestBlockNumber () {

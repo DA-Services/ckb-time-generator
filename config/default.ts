@@ -22,13 +22,13 @@ const CellDeps = [
 ]
 
 const IndexStateTypeScript = {
-  codeHash: '',
+  codeHash: '0xf47e324a660f35d453ae474a0e12acbfd1adadab72e8fc1ecc0ea7de3c96032a',
   hashType: 'type',
   args: '0x',
 }
 
 const InfoTypeScript = {
-  codeHash: '',
+  codeHash: '0x2e0e5b790cfb346bddc0e82a70f785e90d1537bbfdbdd25f6a3617cc760f887b',
   hashType: 'type',
   args: '0x',
 }
