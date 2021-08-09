@@ -94,7 +94,7 @@ export async function statusController (argv: Arguments<{ type: string }>) {
     let created_at = dayjs(status.created_at)
 
     switch (cellType) {
-      case CellType.Time:
+      case CellType.Timestamp:
         let value = dayjs(status.value.toString(), 'X').format('YYYY-MM-DD HH:mm:ss')
         console.log(`  { index: ${index}, value: ${status.value}(${value}), height: ${status.created_at_height}, created_at: ${status.created_at}(${created_at.format('YYYY-MM-DD HH:mm:ss')}), from_now: ${created_at.fromNow()}, tx_hash: ${status.out_point.tx_hash} }`)
         break

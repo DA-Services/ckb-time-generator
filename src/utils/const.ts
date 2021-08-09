@@ -13,6 +13,6 @@ export const TIME_5_S = 5 * 1000;
 
 export enum CellType {
   Quote = '0x00',
-  Time = '0x01',
-  Height = '0x02',
+  Timestamp = '0x01',
+  BlockNumber = '0x02',
 }
