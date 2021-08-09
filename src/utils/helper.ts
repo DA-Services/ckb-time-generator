@@ -8,11 +8,16 @@ import fetch from 'node-fetch'
 import { networkInterfaces } from 'os'
 
 export function typeToCellType(type: string) {
-  let key = type[0].toUpperCase() + type.slice(1)
-  if (!CellType[key]) {
-    throw new Error(`Can not find cell type from type: ${type}`)
+  switch(type) {
+    case 'timestamp':
+      return CellType.Timestamp
+    case 'blocknumber':
+      return CellType.BlockNumber
+    case 'quote':
+      return CellType.Quote
+    default:
+      throw new Error(`Can not find cell type from type: ${type}`)
   }
-  return CellType[key]
 }
 
 export function getTypeScriptOfInfoCell(type: CellType): CKBComponents.Script {
@@ -203,4 +208,12 @@ export function getCurrentIP() {
   }
 
   return address
+}
+
+export function sortLiveCells(cells: IndexerLiveCell[]): IndexerLiveCell[] {
+  cells.sort((a, b) => {
+    return a.block_number > b.block_number ? 1 : (a.block_number < b.block_number ? -1 : 0)
+  })
+
+  return cells
 }
