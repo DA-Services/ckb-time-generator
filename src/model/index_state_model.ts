@@ -1,35 +1,29 @@
-import { remove0x } from '../utils/hex'
 import { Buffer } from 'buffer'
-import { SUM_OF_INFO_CELLS } from '../utils/const'
+
+import { remove0x } from '../utils/helper'
 
 const IndexStateDataLength = 1 + 1;
 
 export class IndexStateModel {
-  private index: number
+  index: number
+  total: number
 
-  constructor(index) {
+  constructor(index, total) {
     this.index = index
-  }
-
-  getIndex() {
-    return this.index
-  }
-
-  getSumOfInfoCells() {
-    return SUM_OF_INFO_CELLS
-  }
-
-  toString() {
-    let buf = Buffer.from([this.index, SUM_OF_INFO_CELLS])
-    return `0x${buf.toString('hex')}`
+    this.total = total
   }
 
   increaseIndex() {
-    let nextIndex = this.index + 1
-    if (nextIndex >= SUM_OF_INFO_CELLS) {
-      nextIndex = 0
+    if (this.index + 1 >= this.total) {
+      this.index = 0
+    } else {
+      this.index += 1
     }
-    return new IndexStateModel(nextIndex)
+  }
+
+  toString() {
+    let buf = Buffer.from([this.index, this.total])
+    return `0x${buf.toString('hex')}`
   }
 
   static fromHex(hex: string): IndexStateModel {
@@ -37,8 +31,9 @@ export class IndexStateModel {
     if (buf.length != IndexStateDataLength) {
       throw new Error(`IndexState data length error.(expected: ${IndexStateDataLength}, current: ${buf.length})`)
     }
+
     // Dynamic limit current InfoCell to the maximum index configured by const.ts .
-    let index = buf[0] <= SUM_OF_INFO_CELLS ? buf[0] : SUM_OF_INFO_CELLS;
-    return new IndexStateModel(index)
+    let index = buf[0] <= buf[1] ? buf[0] : buf[1];
+    return new IndexStateModel(index, buf[1])
   }
 }

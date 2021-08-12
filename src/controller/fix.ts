@@ -2,17 +2,17 @@ import { inspect } from 'util'
 import { Arguments } from 'yargs'
 
 import config from '../config'
+import { SUM_OF_INFO_CELLS } from '../const'
 import { ckb, getCells } from '../utils/rpc'
 import {
   getTypeScriptOfIndexStateCell,
   getTypeScriptOfInfoCell,
   sortLiveCells,
   typeToCellType,
+  toHex
 } from '../utils/helper'
 import { InfoModel } from '../model/info_model'
-import { SUM_OF_INFO_CELLS } from '../utils/const'
 import { EMPTY_WITNESS_ARGS } from '@nervosnetwork/ckb-sdk-utils/lib/const'
-import { toHex } from '../utils/hex'
 
 async function findRedundantIndexStateCells (typeScript: CKBComponents.Script) {
   let indexStateCells = await getCells(typeScript, 'type')
@@ -45,25 +45,25 @@ async function findRedundantInfoCells (typeScript: CKBComponents.Script) {
     let model = InfoModel.fromHex(cell.output_data)
     let created_at_height = parseInt(cell.block_number, 16)
     let capacity = parseInt(cell.output.capacity, 16)
-    if (model.getIndex() > SUM_OF_INFO_CELLS - 1) {
+    if (model.index > SUM_OF_INFO_CELLS - 1) {
       // Cells with out of range index is redundant.
       cells.push({
         out_point: cell.out_point,
         created_at_height,
-        index: model.getIndex(),
+        index: model.index,
         capacity,
       })
     } else {
-      if (existIndexes.includes(model.getIndex())) {
+      if (existIndexes.includes(model.index)) {
         // Cells with the same index is redundant.
         cells.push({
           out_point: cell.out_point,
           created_at_height,
-          index: model.getIndex(),
+          index: model.index,
           capacity,
         })
       } else {
-        existIndexes.push(model.getIndex())
+        existIndexes.push(model.index)
       }
     }
   }
@@ -97,12 +97,12 @@ export async function fixController (argv: Arguments<{ type: string }>) {
   if (argv.dryRun) {
     console.log(`\n=== redundant index cells ===`)
     indexStateCells.forEach(cell => {
-      console.log(`  { created_at_height: ${cell.created_at_height}, out_point: ${cell.out_point.tx_hash}-${cell.out_point.index}`)
+      console.log(`  block_height: ${cell.created_at_height}, out_point: ${cell.out_point.tx_hash}-${cell.out_point.index}`)
     })
 
     console.log(`\n=== redundant info cells ===`)
     infoCells.forEach(cell => {
-      console.log(`  { index: ${cell.index}, created_at_height: ${cell.created_at_height}, out_point: ${cell.out_point.tx_hash}-${cell.out_point.index}`)
+      console.log(`  index: ${cell.index}, block_height: ${cell.created_at_height}, out_point: ${cell.out_point.tx_hash}-${cell.out_point.index}`)
     })
   } else {
     let totalCapacity = 0

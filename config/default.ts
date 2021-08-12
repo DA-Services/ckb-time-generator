@@ -1,5 +1,3 @@
-import { INFO_DATA_TYPE } from '../src/utils/const'
-
 const CellDeps = [
   // index-state-cell-type & info-cell-type, this need to be updated every time the contracts changed
   {
@@ -25,17 +23,19 @@ const InfoTypeScript = {
   args: '0x',
 }
 
-// ⚠️ rebuild is required for dev:* scripts, because node-config do not recognise typescript files.
-console.log('using config: default')
-
 export default {
-  CKB_NODE_RPC: 'http://172.31.97.75:8114',
-  CKB_NODE_INDEXER: 'http://172.31.97.75:8116',
-  CKB_WS_URL: 'ws://172.31.97.75:8118',
+  CKB_NODE_RPC: 'http://127.0.0.1:8114',
+  CKB_NODE_INDEXER: 'http://127.0.0.1:8116',
+  CKB_WS_URL: 'ws://127.0.0.1:8118',
   WECOM_API_KEY: '',
   LARK_API_KEY: '',
 
-  infoDataType: INFO_DATA_TYPE.arbitrage,
+  loglevel: 'info',
+
+  fee: {
+    create: BigInt(1000),
+    update: BigInt(1000),
+  },
 
   CellDeps,
   IndexStateTypeScript,

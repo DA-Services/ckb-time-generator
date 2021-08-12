@@ -1,11 +1,20 @@
-import config from '../config'
-import { IndexStateModel } from '../model/index_state_model'
-import { InfoModel } from '../model/info_model'
-import { CellType, INFO_CELL_CAPACITY } from './const'
-import { parseIndex, toHex, uint32ToBe } from './hex'
-import { getCells } from './rpc'
 import fetch from 'node-fetch'
 import { networkInterfaces } from 'os'
+
+import config from '../config'
+import { CellType, SinceFlag } from '../const'
+import { getCells, rpcFormat } from './rpc'
+
+export function remove0x (hex: string) {
+  if (hex.startsWith('0x')) {
+    return hex.substring(2)
+  }
+  return hex
+}
+
+export function toHex(num: number | BigInt) {
+  return `0x${num.toString(16)}`
+}
 
 export function typeToCellType(type: string) {
   switch(type) {
@@ -34,104 +43,54 @@ export function getTypeScriptOfIndexStateCell(type: CellType): CKBComponents.Scr
   }
 }
 
-export async function generateIndexStateOutput (args) {
-  return {
-    capacity: toHex(INFO_CELL_CAPACITY),
-    lock: config.PayersLockScript,
-    type: {
-      ...config.IndexStateTypeScript,
-      args,
-    },
+export function dataToSince (data: BigInt, flag: SinceFlag) {
+  let hex: string
+  if (flag == SinceFlag.AbsoluteHeight) {
+    hex = data.toString(16)
+  } else {
+    let buf = Buffer.alloc(8)
+    buf.writeBigUInt64BE(data as bigint)
+    hex = buf.toString('hex')
+    hex = flag + hex.slice(2)
   }
+
+  return `0x${hex}`
 }
 
-export async function generateInfoOutput (args) {
-  return {
-    capacity: toHex(INFO_CELL_CAPACITY),
-    lock: config.PayersLockScript,
-    type: {
-      ...config.InfoTypeScript,
-      args
-    }
+/**
+ * get ckb price
+ * precision: 1/10000 of 1 cent, 0.000001
+ */
+export async function getCkbPrice(): Promise<BigInt> {
+  const data = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd').then(res => res.json())
+  if (data?.['nervos-network']?.usd) {
+    return BigInt(data?.['nervos-network']?.usd * 100 * 10000 | 0)
   }
+
+  throw new Error(`Parse quote from the response of coingecko API failed, require manually updating code!`)
 }
 
-export async function getIndexStateCell (): Promise<{indexStateCell: IndexerLiveCell, indexState: IndexStateModel}> {
-  const indexStateCells = await getCells(config.IndexStateTypeScript, 'type')
+export async function collectInputs (lockScript: CKBComponents.Script, needCapacity: BigInt) {
+  const liveCells = await getCells(lockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
 
-  if (!indexStateCells || indexStateCells.length === 0) {
-    console.warn(`helper: The amount of IndexStateCell is 0, will create one.`)
-    return {
-      indexStateCell: null,
-      indexState: null,
-    }
-  }
-
-  if (indexStateCells.length > 1) {
-    console.error(`helper: The amount of IndexStateCell is bigger than 1: ${indexStateCells.length}`)
-  }
-
-  const indexStateCell = indexStateCells[0]
-  const indexState = IndexStateModel.fromHex(indexStateCell.output_data)
-  return {
-    indexStateCell,
-    indexState: indexState
-  }
-}
-
-export async function getInfoCell (infoCellIndex): Promise<{infoCell: IndexerLiveCell, infoModel: InfoModel}> {
-  let infoCells = await getCells(config.InfoTypeScript, 'type')
-
-  if (infoCells && infoCells.length !== 0) {
-    const infoCell = infoCells.find(cell => parseIndex(cell.output_data) === infoCellIndex)
-
-    if (infoCell) {
-      const infoModel = InfoModel.fromHex(infoCell.output_data)
-
-      return {
-        infoCell,
-        infoModel: infoModel,
-      }
-    }
-  }
-
-  return {
-    infoCell: null,
-    infoModel: null,
-  }
-}
-
-export const collectInputs = (liveCells, needCapacity, since) => {
   let inputs = []
-  let sum = BigInt(0)
+  let totalCapacity = BigInt(0)
   for (let cell of liveCells) {
     inputs.push({
-      previousOutput: {
-        txHash: cell.out_point.tx_hash,
-        index: cell.out_point.index,
-      },
-      since,
+      previousOutput: rpcFormat().toOutPoint(cell.out_point),
+      since: '0x0',
     })
-    sum = sum + BigInt(cell.output.capacity)
-    if (sum >= needCapacity) {
+    totalCapacity += BigInt(cell.output.capacity)
+    if (totalCapacity >= needCapacity) {
       break
     }
   }
 
-  if (sum < needCapacity) {
-    throw Error(`capacity not enough. (expected: ${needCapacity}, current: ${sum})`)
+  if (totalCapacity < needCapacity) {
+    throw Error(`capacity not enough.(expected: ${needCapacity}, current: ${totalCapacity})`)
   }
 
-  return {inputs, capacity: sum}
-}
-
-export const generateTimestampSince = timestamp => {
-  // TODO temporarily convert bigint to number, should refactor to buffer in the future
-  return `0x40000000${uint32ToBe(parseInt(timestamp))}`
-}
-
-export const generateBlockNumberSince = (blockNumber: BigInt) => {
-  return toHex(blockNumber)
+  return { inputs, capacity: totalCapacity }
 }
 
 export async function notifyWecom(msg: string) {
@@ -157,7 +116,19 @@ export async function notifyWecom(msg: string) {
   }
 }
 
-export async function notifyLark(msg: string) {
+let throttleSources = {};
+export async function notifyWithThrottle(source: string, duration: number, msg: string) {
+  // Limit notify frequency.
+  let now = Date.now()
+  if (now - throttleSources[source] <= duration) {
+    return
+  }
+  throttleSources[source] = now
+
+  await notifyLark(msg)
+}
+
+async function notifyLark(msg: string) {
   try {
     let content: any[] = [
       [{tag: 'text', un_escaped: true, text: `server_ip: ${getCurrentIP()}`}],
