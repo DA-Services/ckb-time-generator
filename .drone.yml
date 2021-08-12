@@ -36,6 +36,7 @@ pipeline:
       - 'export NVM_DIR="$HOME/.nvm"'
       - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
       - cd /data/code/ckb-time-generator
+      - npm run build
       - npm run reload_production
     when:
       branch: [master, main]
@@ -52,6 +53,7 @@ pipeline:
       - 'export NVM_DIR="$HOME/.nvm"'
       - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
       - cd /mnt/ckb-time-generator
+      - npm run build
       - npm run reload_testnet
     when:
       branch: [test, develop]
