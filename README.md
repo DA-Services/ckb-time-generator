@@ -1,56 +1,20 @@
 # ckb-time-generator
 
-The generator of [ckb-time-scripts](https://github.com/nervina-labs/ckb-time-scripts).
+The generator of [ckb-time-scripts](https://github.com/DeAccountSystems/ckb-time-script).
 
-### How to Work
 
-```shell
-git clone https://github.com/duanyytop/ckb-time-generator.git
-cd ckb-time-generator
-```
+## How to Work
 
-- Edit .env file
+- Clone and install every dependencies.
+- Copy `config/default.ts` to `config/local.ts`, edit configs as needed.
+- Build with `npm run build`, each time you update `config/local.ts` it is needed to rebuild.
+- Run with `npm run reload_testnet` or `npm run reload_production` base on environment.
 
-You need to copy `.env` file from `.env.example` and input ckb node url and ckb indexer url.
 
-- Installation
+## Tool Commands
 
-```shell
-yarn install
-```
+- `npm run main -- status -t timestamp` check status of TimeCells and their IndexStateCell on-chain.
+- `npm run main -- fix -t timestamp` recycle redundant TimeCells and their IndexStateCell on-chain.
+- `npm run main -- update -t timestamp` keep updating TimeCells and their IndexStateCell on-chain.
 
-- Running
-
-```shell
-yarn start
-```
-
-### Information on Aggron
-
-The time info type script of timestamp and block number on Aggron can be found [wiki#type-script](https://github.com/duanyytop/ckb-time-generator/wiki/Time-info-type-script-on-Aggron).
-
-The transactions of timestamp and block number on Aggron can be found [wiki#transactions](https://github.com/duanyytop/ckb-time-generator/wiki/Time-info-transctions-on-Aggron).
-
-### Files Structure
-```shell
-ckb-time-generator/
-  | config/                   # config directory
-  |   default.ts              # default config
-  |   blocknumber.ts          # config for blocknumber
-  |   timestamp.ts
-  |   quote.ts
-  | src/
-  |   logic/
-  |     create.ts             # create cells when first start
-  |     update.ts             # update info & index cell when necessary
-  |     server.ts             # a server controls when to create or update
-  |   model/
-  |     index_state_model.ts  # a abstraction for index state cell
-  |     info_model.ts         # a abstraction for info cell
-  |   utils/
-  |     ...
-  |   config.ts               # used to load config from `config/` and add type information 
-  |   start-block.ts          # start block cell server
-  |   start-quote.ts          # start quote cell server
-  |   start-time.ts
-```
+Same as `timestamp` other option of `-t` can be `blocknumber` and `quote`, for more help information, please try `npm run main -- --help` .
