@@ -1,7 +1,6 @@
 import CKB from '@nervosnetwork/ckb-sdk-core'
-// @ts-ignore
-import { CKBComponents } from '@nervosnetwork/ckb-types'
 import fetch from 'node-fetch'
+
 import config from '../config'
 
 export const ckb = new CKB(config.CKB_NODE_RPC)
@@ -28,7 +27,7 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
         filter: filter,
       },
       'asc',
-      '0xff',
+      '0x64',
     ],
   }
 
@@ -62,15 +61,21 @@ export async function getBlockNumber(blockNumber: string | bigint): Promise<CKBC
   return ckb.rpc.getBlockByNumber(blockNumber)
 }
 
-export async function getLatestBlockNumber () {
-  const number = await ckb.rpc.getTipBlockNumber()
-  return BigInt(number)
+export async function getTipHeader() {
+  return ckb.rpc.getTipHeader()
 }
 
-export async function getLatestTimestamp () {
-  const tipBlockNumber = await getLatestBlockNumber()
+export async function getHeaderByNumber (number: string | bigint) {
+  return ckb.rpc.getHeaderByNumber(number)
+}
+
+export async function getLatestTimestamp (number: string | bigint) {
   //The median block time calculated from the past 37 blocks timestamp
-  const number = tipBlockNumber - BigInt(18)
-  const {timestamp} = await ckb.rpc.getHeaderByNumber(number)
-  return BigInt(Math.floor(parseInt(timestamp) / 1000))
+  const medianNumber = BigInt(number) - BigInt(18)
+  const { timestamp } = await ckb.rpc.getHeaderByNumber(medianNumber)
+  return BigInt(timestamp) / BigInt(1000)
+}
+
+export function rpcFormat () {
+  return ckb.rpc.resultFormatter
 }
