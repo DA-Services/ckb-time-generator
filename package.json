@@ -8,13 +8,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "start:timestamp": "tsc && NODE_CONFIG_DIR=./dist/config node dist/src/start-timestamp.js",
-    "start:blocknumber": "tsc && NODE_CONFIG_DIR=./dist/config node dist/src/start-blocknumber.js",
-    "start:quote": "tsc && NODE_CONFIG_DIR=./dist/config node dist/src/start-quote.js",
-    "dev:timestamp": "NODE_ENV=testnet ts-node src/start-timestamp.ts",
-    "dev:blocknumber": "NODE_ENV=testnet ts-node src/start-blocknumber.ts",
-    "dev:quote": "NODE_ENV=testnet ts-node src/start-quote.ts",
-    "dev": "ts-node src/start-blocknumber.ts",
+    "main": "NODE_CONFIG_DIR=./dist/config node dist/src/main.js",
+    "dev": "NODE_ENV=testnet NODE_CONFIG_DIR=./config ts-node src/main.ts",
     "lint": "eslint src/**/*.js --fix",
     "reload_production": "NODE_ENV=production pm2 reload ecosystem.config.js",
     "reload_testnet": "NODE_ENV=testnet pm2 reload ecosystem.config.js"
@@ -27,13 +22,16 @@
     "dayjs": "^1.10.6",
     "node-fetch": "^2.6.1",
     "typescript": "^4.3.5",
+    "winston": "^3.3.3",
     "ws": "^7.5.2",
     "yargs": "^17.1.0"
   },
   "devDependencies": {
+    "@nervosnetwork/ckb-sdk-rpc": "^0.43.0",
     "@nervosnetwork/ckb-types": "^0.43.0",
     "@types/node": "^16.0.1",
     "@types/node-fetch": "^2.5.11",
+    "@types/winston": "^2.4.4",
     "@types/ws": "^7.4.7",
     "eslint": "^7.30.0",
     "husky": "^7.0.1",

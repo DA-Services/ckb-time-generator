@@ -1,12 +1,13 @@
 const packageJson = require('./package.json')
 
-function generateApp (name, entry, env) {
+function generateApp (name, entry, args, env) {
   const isProd = env === 'production'
   const appName = `${packageJson.name}_${name}`
 
   return {
     name: appName,
     script: entry,
+    args,
     instances: isProd ? 1 : 1,
     exec_mode: 'cluster',
     watch: false,
@@ -28,8 +29,8 @@ module.exports = {
    * http://pm2.keymetrics.io/docs/usage/application-declaration/
    */
   apps: [
-    generateApp('time', 'dist/src/start-timestamp.js', process.env.NODE_ENV),
-    generateApp('block', 'dist/src/start-blocknumber.js', process.env.NODE_ENV),
-    generateApp('quote', 'dist/src/start-quote.js', process.env.NODE_ENV),
+    generateApp('time', 'dist/src/main.js', 'update -t timestamp', process.env.NODE_ENV),
+    generateApp('height', 'dist/src/main.js', 'update -t blocknumber', process.env.NODE_ENV),
+    generateApp('quote', 'dist/src/main.js', 'update -t quote', process.env.NODE_ENV),
   ]
 }
