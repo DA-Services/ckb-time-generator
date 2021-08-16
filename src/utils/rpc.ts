@@ -32,25 +32,20 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
   }
 
   const body = JSON.stringify(payload, null, '  ')
-  try {
-    let res = await fetch(config.CKB_NODE_INDEXER, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body,
-    })
-    let data = await res.json()
+  let res = await fetch(config.CKB_NODE_INDEXER, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body,
+  })
+  let data = await res.json()
 
-    if (data.error) {
-      throw new Error(`get_cells response error.(code: ${data.error.code}, message: ${data.error.message})`)
-    }
-
-    return data.result.objects
-
-  } catch (error) {
-    console.error('error', error)
+  if (data.error) {
+    throw new Error(`get_cells response error.(code: ${data.error.code}, message: ${data.error.message})`)
   }
+
+  return data.result.objects
 }
 
 export async function getTransaction(txHash: string): Promise<CKBComponents.TransactionWithStatus> {

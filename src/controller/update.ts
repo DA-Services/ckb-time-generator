@@ -91,10 +91,23 @@ export async function updateController (argv: Arguments<{ type: string }>) {
     }
 
     // Calculate new outputs_data of IndexStateCell and InfoCell
-    let { out_point: indexOutPoint, output: indexOutput, model: indexModel } = await findIndexStateCell(indexStateTypeScript)
+    let resultOfIndex: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: IndexStateModel }
+    try {
+      resultOfIndex = await findIndexStateCell(indexStateTypeScript)
+    } catch (e) {
+      logger.error(`Failed to find IndexStateCells: ${e.toString()}`)
+    }
+
+    let { out_point: indexOutPoint, output: indexOutput, model: indexModel } = resultOfIndex
     indexModel.increaseIndex()
 
-    let { out_point: infoOutPoint, output: infoOutput, model: infoModel } = await findInfoCell(infoCellTypeScript, indexModel.index)
+    let resultOfInfo: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: InfoModel }
+    try {
+      resultOfInfo = await findInfoCell(infoCellTypeScript, indexModel.index)
+    } catch (e) {
+      logger.error(`Failed to find InfoCells: ${e.toString()}`)
+    }
+    let { out_point: infoOutPoint, output: infoOutput, model: infoModel } = resultOfInfo
     let since = '0x0'
     let lockScript = config[argv.type].PayersLockScript
     switch (argv.type) {
@@ -137,8 +150,13 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       collected = await collectInputs(lockScript, config.fee.update)
       inputs = inputs.concat(collected.inputs)
     } catch (e) {
-      logger.error(`Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
-      await notifyWithThrottle('collect-inputs-error', TIME_1_M * 10, `Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
+      if (e.toString().includes('capacity')) {
+        logger.error(`Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
+        await notifyWithThrottle('collect-inputs-error', TIME_1_M * 10, `Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
+      } else {
+        logger.error(`Collect inputs error.(${e.toString()})`)
+        await notifyWithThrottle('collect-inputs-error', TIME_1_M * 10, `Collect inputs error.(${e.toString()})`)
+      }
       return
     }
 
@@ -210,6 +228,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         switch (data.code) {
           case -301:
           case -302:
+          case -1107:
             // These error are caused by cell occupation, could retry automatically.
             logger.warn(`Update cell failed.(${data.message})`, { code: data.code })
             return
