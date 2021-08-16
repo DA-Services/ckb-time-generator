@@ -29,14 +29,14 @@ async function findIndexStateCell (typeScript: CKBComponents.Script) {
   let indexStateCells = await getCells(typeScript, 'type')
 
   if (indexStateCells.length > 1) {
-    await notifyWithThrottle('index-state-cells-error', TIME_1_M * 60, 'Found more than one IndexStateCells on-chain, please recycle redundant cells as soon as possible.')
+    // await notifyWithThrottle('index-state-cells-error', TIME_1_M * 60, 'Found more than one IndexStateCells on-chain, please recycle redundant cells as soon as possible.')
   }
 
   let cell = indexStateCells[0]
   let model = IndexStateModel.fromHex(cell.output_data)
 
   if (model.total !== SUM_OF_INFO_CELLS) {
-    await notifyWithThrottle('index-state-cells-error', TIME_1_M * 60, 'Total number of InfoCells is different from code and cell data, please update code as soon as possible.')
+    // await notifyWithThrottle('index-state-cells-error', TIME_1_M * 60, 'Total number of InfoCells is different from code and cell data, please update code as soon as possible.')
   }
 
   return {
