@@ -50,7 +50,7 @@ async function findInfoCell (typeScript: CKBComponents.Script, index: number) {
   let infoCells = await getCells(typeScript, 'type')
 
   if (infoCells.length > SUM_OF_INFO_CELLS) {
-    await notifyWithThrottle('info-cells-error', TIME_1_M * 60, `Found more than ${SUM_OF_INFO_CELLS} InfoCells on-chain, please recycle redundant cells as soon as possible.`)
+    // await notifyWithThrottle('info-cells-error', TIME_1_M * 60, `Found more than ${SUM_OF_INFO_CELLS} InfoCells on-chain, please recycle redundant cells as soon as possible.`)
   }
 
   for (const cell of infoCells) {
