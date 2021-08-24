@@ -1,8 +1,18 @@
 const CellDeps = [
   // index-state-cell-type & info-cell-type, this need to be updated every time the contracts changed
+  // {
+  //   outPoint: { txHash: '0x73d85dde3923672f0b157f0ba119e891065ecdf6d07d024be6240b8da68600a5', index: '0x0' },
+  //   depType: 'depGroup',
+  // },
+  // index-state-cell-type
   {
-    outPoint: { txHash: '0x73d85dde3923672f0b157f0ba119e891065ecdf6d07d024be6240b8da68600a5', index: '0x0' },
-    depType: 'depGroup',
+    outPoint: { txHash: '0xe9116d651c371662b6e29e2102422e23f90656b8619df82c48b782ff4db43a37', index: '0x0' },
+    depType: 'code',
+  },
+  // info-cell-type
+  {
+    outPoint: { txHash: '0x5fe11c5033f7494667f23ae8759762f196105eb3240d26a65f805831b4b26a16', index: '0x0' },
+    depType: 'code',
   },
   // ckb signall lock
   {
@@ -12,13 +22,13 @@ const CellDeps = [
 ]
 
 const IndexStateTypeScript = {
-  codeHash: '0xf47e324a660f35d453ae474a0e12acbfd1adadab72e8fc1ecc0ea7de3c96032a',
+  codeHash: '0x3a468d53352eb855521dabed0dc7036929bfe72766ad58f801edfbae564f7b43',
   hashType: 'type',
   args: '0x',
 }
 
 const InfoTypeScript = {
-  codeHash: '0x2e0e5b790cfb346bddc0e82a70f785e90d1537bbfdbdd25f6a3617cc760f887b',
+  codeHash: '0x9e537bf5b8ec044ca3f53355e879f3fd8832217e4a9b41d9994cf0c547241a79',
   hashType: 'type',
   args: '0x',
 }
@@ -26,7 +36,7 @@ const InfoTypeScript = {
 export default {
   CKB_NODE_RPC: 'http://127.0.0.1:8114',
   CKB_NODE_INDEXER: 'http://127.0.0.1:8116',
-  CKB_WS_URL: 'ws://127.0.0.1:8118',
+  CKB_WS_URL: 'ws://127.0.0.1:28114',
   WECOM_API_KEY: '',
   LARK_API_KEY: '',
 
