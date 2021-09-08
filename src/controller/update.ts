@@ -74,9 +74,12 @@ export async function updateController (argv: Arguments<{ type: string }>) {
   const server = new Server(config.CKB_WS_URL, logger)
   server.connect()
 
-  let maxWaitingBlocks = 5
+  const maxWaitingBlocks = 5
   let waitedBlocks = 0
   let txHash = ''
+  // The response of coingecko may fail sometimes, so we add a counter to determine if it is require to notice developer.
+  const maxCoingeckoApiFailure = 5
+  let coingeckoApiFailure = 0
   server.on('update', async (data: RPC.Header) => {
     if (txHash && waitedBlocks <= maxWaitingBlocks) {
       logger.verbose('Found pending transaction, check if transaction committed ...', { txHash: txHash })
@@ -127,8 +130,19 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       case 'quote':
         try {
           infoModel.infoData = await getCkbPrice()
+          // Reset failure count to 0.
+          coingeckoApiFailure = 0
         } catch (e) {
-          await notifyWithThrottle('fetch-quote-error', TIME_1_M * 10, `${e}`)
+          if (e.toString().includes('invalid json')) {
+            // Count failures for warning developers if it is over frequent.
+            coingeckoApiFailure += 1;
+            logger.error(`Failed to parse the response from coingecko as JSON, the raw data is: ${e.extra_data}`)
+            if (coingeckoApiFailure > maxCoingeckoApiFailure) {
+              await notifyWithThrottle('fetch-quote-error', TIME_1_M * 10, `Failed to parse the response from coingecko as JSON too many times.`)
+            }
+          } else {
+            await notifyWithThrottle('fetch-quote-error', TIME_1_M * 10, `${e}`)
+          }
           return
         }
         break

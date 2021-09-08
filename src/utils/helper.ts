@@ -62,7 +62,21 @@ export function dataToSince (data: BigInt, flag: SinceFlag) {
  * precision: 1/10000 of 1 cent, 0.000001
  */
 export async function getCkbPrice(): Promise<BigInt> {
-  const data = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd').then(res => res.json())
+  const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd')
+  if (!res.ok) {
+    throw new Error(`Fetch coingecko api failed: ${res.status} ${res.statusText}`)
+  }
+
+  let raw = '';
+  let data = null;
+  try {
+    raw = await res.text()
+    data = JSON.parse(raw)
+  } catch (e) {
+    e.extra_data = raw
+    throw e
+  }
+
   if (data?.['nervos-network']?.usd) {
     return BigInt(data?.['nervos-network']?.usd * 100 * 10000 | 0)
   }
