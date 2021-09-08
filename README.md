@@ -18,3 +18,31 @@ The generator of [ckb-time-scripts](https://github.com/DeAccountSystems/ckb-time
 - `npm run main -- update -t timestamp` keep updating TimeCells and their IndexStateCell on-chain.
 
 Same as `timestamp` other option of `-t` can be `blocknumber` and `quote`, for more help information, please try `npm run main -- --help` .
+
+
+## Development
+
+First, you need to create `config/local.ts`, input private keys like below:
+
+```typescript
+export default {
+  loglevel: 'debug',
+  timestamp: {
+    PayersPrivateKey: '0x000000000...',
+  },
+  blocknumber: {
+    PayersPrivateKey: '0x000000000...',
+  },
+  quote: {
+    PayersPrivateKey: '0x000000000...',
+  }
+}
+```
+
+Then, you will be able to run commands in testnet environment like below:
+
+```bash
+npm run dev -- {sub commands}
+```
+
+The `dev` script will load `config/local-testnet.ts` and `config/testnet.ts` by default.
