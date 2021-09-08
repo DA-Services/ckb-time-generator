@@ -107,5 +107,3 @@ dist
 .yarn/
 
 config/local.ts
-config/*-testnet.ts
-config/*-mainnet.ts
