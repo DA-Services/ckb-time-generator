@@ -26,9 +26,6 @@ const InfoTypeScript = {
 }
 
 export default {
-  CKB_NODE_RPC: 'http://127.0.0.1:8224',
-  CKB_NODE_INDEXER: 'http://127.0.0.1:8226',
-  CKB_WS_URL:'ws://127.0.0.1:8228',
   WECOM_API_KEY: 'a30a921c-b94c-4b8e-9e69-fb7b065379c2',
   LARK_API_KEY: 'f1b445d7-811a-498c-86db-63deef080c5f',
 
