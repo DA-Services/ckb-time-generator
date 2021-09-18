@@ -232,7 +232,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
     }
 
     try {
-      txHash = await ckb.rpc.sendTransaction(signedRawTx)
+      txHash = await ckb.rpc.sendTransaction(signedRawTx, 'passthrough')
       waitedBlocks = 0
 
       logger.info(`Push transaction, tx hash: ${txHash}`)
