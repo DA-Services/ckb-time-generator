@@ -14,6 +14,7 @@ import {
   notifyWithThrottle,
   typeToCellType,
   toHex,
+  notifyLark, notifyWithThreshold,
 } from '../utils/helper'
 import {
   ckb,
@@ -78,8 +79,6 @@ export async function updateController (argv: Arguments<{ type: string }>) {
   let waitedBlocks = 0
   let txHash = ''
   // The response of coingecko may fail sometimes, so we add a counter to determine if it is require to notice developer.
-  const maxCoingeckoApiFailure = 5
-  let coingeckoApiFailure = 0
   server.on('update', async (data: RPC.Header) => {
     if (txHash && waitedBlocks <= maxWaitingBlocks) {
       logger.verbose('Found pending transaction, check if transaction committed ...', { txHash: txHash })
@@ -122,7 +121,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         try {
           infoModel.infoData = await getLatestTimestamp(data.number)
         } catch (e) {
-          await notifyWithThrottle('fetch-timestamp-error', TIME_1_M * 10, `${e}`)
+          await notifyWithThreshold('fetch-timestamp-error', 5, TIME_1_M * 10, `${e}`, 'Check if CKB node is offline and its JSON RPC is reachable.')
           return
         }
         since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteTimestamp)
@@ -130,18 +129,12 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       case 'quote':
         try {
           infoModel.infoData = await getCkbPrice()
-          // Reset failure count to 0.
-          coingeckoApiFailure = 0
         } catch (e) {
           if (e.toString().includes('invalid json')) {
-            // Count failures for warning developers if it is over frequent.
-            coingeckoApiFailure += 1;
             logger.error(`Failed to parse the response from coingecko as JSON, the raw data is: ${e.extra_data}`)
-            if (coingeckoApiFailure > maxCoingeckoApiFailure) {
-              await notifyWithThrottle('fetch-quote-error', TIME_1_M * 10, `Failed to parse the response from coingecko as JSON too many times.`)
-            }
+            await notifyWithThreshold('fetch-quote-error', 5, TIME_1_M * 10, `Failed to parse the response from coingecko as JSON too many times.`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
           } else {
-            await notifyWithThrottle('fetch-quote-error', TIME_1_M * 10, `${e}`)
+            await notifyWithThreshold('fetch-quote-error', 5, TIME_1_M * 10, `${e}`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
           }
           return
         }
@@ -166,10 +159,10 @@ export async function updateController (argv: Arguments<{ type: string }>) {
     } catch (e) {
       if (e.toString().includes('capacity')) {
         logger.error(`Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
-        await notifyWithThrottle('collect-inputs-error', TIME_1_M * 10, `Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
+        await notifyWithThreshold('collect-inputs-error', 5, TIME_1_M * 5, `Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`, 'Check if the balance of deploy address is enough.')
       } else {
         logger.error(`Collect inputs error.(${e.toString()})`)
-        await notifyWithThrottle('collect-inputs-error', TIME_1_M * 10, `Collect inputs error.(${e.toString()})`)
+        await notifyWithThreshold('collect-inputs-error', 5, TIME_1_M * 5, `Collect inputs error.(${e.toString()})`, 'Check if ckb-indexer is offline and the get_cells interface is reachable.')
       }
       return
     }
@@ -218,7 +211,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       await ckb.loadDeps()
     } catch (e) {
       logger.error(`Load cell_deps from node RPC API failed.(${e})`)
-      await notifyWithThrottle('load-cell-deps-error', TIME_1_M * 10, `Load cell_deps from node RPC API failed.(${e})`)
+      await notifyWithThreshold('load-cell-deps-error', 5, TIME_1_M * 10, `Load cell_deps from node RPC API failed.(${e})`, 'Check if CKB node is offline and its JSON RPC is reachable.')
       return
     }
 
@@ -227,7 +220,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       signedRawTx = ckb.signTransaction(config[argv.type].PayersPrivateKey)(rawTx)
     } catch (e) {
       logger.error(`Sign transaction failed.(${e})`)
-      await notifyWithThrottle('sign-transaction-error', TIME_1_M * 10, `Sign transaction failed.(${e})`)
+      await notifyWithThrottle('sign-transaction-error', TIME_1_M * 10, `Sign transaction failed.(${e})`, 'Try to find out what the error message means it mostly because the private key is not match.')
       return
     }
 
@@ -248,11 +241,11 @@ export async function updateController (argv: Arguments<{ type: string }>) {
             return
           default:
             logger.error(`Update cell failed.(${data.message})`, { code: data.code })
-            await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell failed.(${data.message})`)
+            await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell failed.(${data.message})`, 'Try to find out what the error message means.')
         }
       } catch (e) {
         logger.error(`Update cell occurred unknown error.(${err})`)
-        await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell occurred unknown error.(${err})`)
+        await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell occurred unknown error.(${err})`, 'Try to find out what the error message means.')
 
       }
     }
@@ -268,7 +261,7 @@ class Server extends EventEmitter {
   protected eventStatus: { timer: any, history: any[] }
   protected txStatus: { txHash: string, waitedBlocks: number }
 
-  protected eventTimeoutLimit = TIME_1_M * 3
+  protected eventTimeoutLimit = TIME_1_M * 5
 
   constructor (url: string, logger: Logger) {
     super()
@@ -340,8 +333,10 @@ class Server extends EventEmitter {
       this.emit('update', result)
 
       status.timer = setTimeout(async () => {
-        this.logger.error(`There is no new block for ${this.eventTimeoutLimit} seconds.`)
-        await notifyWithThrottle('event-timeout', TIME_1_M * 10, `There is no new block for ${this.eventTimeoutLimit} seconds.`)
+        this.logger.error(`There is no new block for ${this.eventTimeoutLimit / 1000} seconds.`)
+        // This error reports only once if no message received, so DO NOT use notifyWithThrottle to report.
+        // The key point here is eventTimeoutLimit, enlarge it is the only way
+        await notifyLark(`There is no new block for ${this.eventTimeoutLimit / 1000} seconds.`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
       }, this.eventTimeoutLimit)
     }
   }
@@ -358,7 +353,7 @@ class Server extends EventEmitter {
 
   protected async onError (err: Error) {
     this.logger.error(`Connection error occurred.(${err})`)
-    await notifyWithThrottle('ws-error', TIME_1_M * 10, `Connection error occurred.(${err})`)
+    await notifyWithThrottle('ws-error', TIME_1_M * 10, `Connection error occurred.(${err})`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
   }
 
   protected heartbeat () {
@@ -367,7 +362,7 @@ class Server extends EventEmitter {
 
     clearTimeout(status.timer)
     status.timer = setTimeout(async () => {
-      await notifyWithThrottle('heartbeat', TIME_1_M, 'Connection timeout.')
+      await notifyWithThrottle('heartbeat', TIME_1_M * 10, 'Connection timeout.', 'Check if CKB node is offline and the get_tip_header interface is reachable.')
       this.ws.terminate()
     }, TIME_30_S)
 

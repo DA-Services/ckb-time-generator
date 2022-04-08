@@ -130,8 +130,49 @@ export async function notifyWecom(msg: string) {
   }
 }
 
+let thresholdSources: { [key: string]: { count: number, startAt: number } } = {};
+
+/**
+ * Send notification only when it happens multiple times in period
+ *
+ * @param {string} source
+ * @param {number} max_count
+ * @param {number} period
+ * @param {string} msg
+ * @param {string} how_to_fix
+ * @returns {Promise<void>}
+ */
+export async function notifyWithThreshold(source: string, max_count: number, period: number, msg: string, how_to_fix = '') {
+  let now = Date.now()
+  if (thresholdSources[source]) {
+    let { count, startAt } = thresholdSources[source];
+    if (now - startAt <= period) {
+      // Continue counting in a specific period
+      count += 1
+    } else {
+      // Reset counting if out of the period
+      count = 1
+      startAt = now
+    }
+
+    if (count > max_count) {
+      // Send notification if it gets out of the max count.
+      thresholdSources[source] = null
+      await notifyLark(msg, how_to_fix)
+    } else {
+      // Suppress notification if it still does not reach the max count.
+      thresholdSources[source] = { count, startAt }
+    }
+  } else {
+    thresholdSources[source] = {
+      count: 1,
+      startAt: now
+    }
+  }
+}
+
 let throttleSources = {};
-export async function notifyWithThrottle(source: string, duration: number, msg: string) {
+export async function notifyWithThrottle(source: string, duration: number, msg: string, how_to_fix = '') {
   // Limit notify frequency.
   let now = Date.now()
   if (now - throttleSources[source] <= duration) {
@@ -139,15 +180,16 @@ export async function notifyWithThrottle(source: string, duration: number, msg: 
   }
   throttleSources[source] = now
 
-  await notifyLark(msg)
+  await notifyLark(msg, how_to_fix)
 }
 
-async function notifyLark(msg: string) {
+export async function notifyLark(msg: string, how_to_fix = '') {
   try {
     let content: any[] = [
       [{tag: 'text', un_escaped: true, text: `server_ip: ${getCurrentIP()}`}],
       [{tag: 'text', un_escaped: true, text: `ckb_ws_url: ${config.CKB_WS_URL}`}],
       [{tag: 'text', un_escaped: true, text: `reason: ${msg}`}],
+      [{tag: 'text', un_escaped: true, text: `how to fix: ${how_to_fix}`}],
     ]
     if (process.env.NODE_ENV === 'production') {
       content.push([{tag: 'at', user_id: 'all'}])
