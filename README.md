@@ -46,4 +46,3 @@ npm run dev -- {sub commands}
 ```
 
 The `dev` script will load `config/local-testnet.ts` and `config/testnet.ts` by default.
-
