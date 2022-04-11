@@ -221,7 +221,7 @@ export async function notifyLark(msg: string, how_to_fix = '') {
 
 export function getCurrentIP() {
   let nets = networkInterfaces()
-  let address;
+  let address = 'parse failed';
 
   for (const name of Object.keys(nets)) {
     if (name.startsWith('eno') || name.startsWith('eth')) {
