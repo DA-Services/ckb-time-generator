@@ -11,6 +11,7 @@ export enum INFO_DATA_TYPE {
 export const TIME_1_M = 60 * 1000;
 export const TIME_30_S = 30 * 1000;
 export const TIME_5_S = 5 * 1000;
+export const THEORETIC_BLOCK_1_M = 4;
 
 export enum CellType {
   Quote = '0x00',

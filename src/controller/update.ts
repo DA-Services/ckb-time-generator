@@ -4,7 +4,7 @@ import { Logger } from 'winston'
 import EventEmitter from 'events'
 
 import config from '../config'
-import { SinceFlag, SUM_OF_INFO_CELLS, TIME_1_M, TIME_30_S, TIME_5_S } from '../const'
+import { SinceFlag, SUM_OF_INFO_CELLS, TIME_1_M, TIME_30_S, TIME_5_S, THEORETIC_BLOCK_1_M } from '../const'
 import { rootLogger } from '../log'
 import {
   collectInputs,
@@ -79,176 +79,182 @@ export async function updateController (argv: Arguments<{ type: string }>) {
   let waitedBlocks = 0
   let txHash = ''
   // The response of coingecko may fail sometimes, so we add a counter to determine if it is require to notice developer.
-  server.on('update', async (data: RPC.Header) => {
-    if (txHash && waitedBlocks <= maxWaitingBlocks) {
-      logger.verbose('Found pending transaction, check if transaction committed ...', { txHash: txHash })
+  server.on('update', (data: RPC.Header) => {
+    (async () => {
+      if (txHash && waitedBlocks <= maxWaitingBlocks) {
+        logger.verbose('Found pending transaction, check if transaction committed ...', { txHash: txHash })
 
-      const tx = await getTransaction(txHash)
-      // tx maybe null
-      if (!tx || tx.txStatus.status !== 'committed') {
-        logger.info('Previous transaction is pending, wait for it.', { txHash: txHash })
-        waitedBlocks++
+        const tx = await getTransaction(txHash)
+        // tx maybe null
+        if (!tx || tx.txStatus.status !== 'committed') {
+          logger.info('Previous transaction is pending, wait for it.', { txHash: txHash })
+          waitedBlocks++
+          return
+        }
+      }
+
+      // Calculate new outputs_data of IndexStateCell and InfoCell
+      let resultOfIndex: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: IndexStateModel }
+      try {
+        resultOfIndex = await findIndexStateCell(indexStateTypeScript)
+      } catch (e) {
+        logger.error(`Failed to find IndexStateCells: ${e.toString()}`)
         return
       }
-    }
 
-    // Calculate new outputs_data of IndexStateCell and InfoCell
-    let resultOfIndex: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: IndexStateModel }
-    try {
-      resultOfIndex = await findIndexStateCell(indexStateTypeScript)
-    } catch (e) {
-      logger.error(`Failed to find IndexStateCells: ${e.toString()}`)
-    }
+      let { out_point: indexOutPoint, output: indexOutput, model: indexModel } = resultOfIndex
+      indexModel.increaseIndex()
 
-    let { out_point: indexOutPoint, output: indexOutput, model: indexModel } = resultOfIndex
-    indexModel.increaseIndex()
-
-    let resultOfInfo: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: InfoModel }
-    try {
-      resultOfInfo = await findInfoCell(infoCellTypeScript, indexModel.index)
-    } catch (e) {
-      logger.error(`Failed to find InfoCells: ${e.toString()}`)
-    }
-    let { out_point: infoOutPoint, output: infoOutput, model: infoModel } = resultOfInfo
-    let since = '0x0'
-    let lockScript = config[argv.type].PayersLockScript
-    switch (argv.type) {
-      case 'blocknumber':
-        infoModel.infoData = BigInt(data.number)
-        since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteHeight)
-        break
-      case 'timestamp':
-        try {
-          infoModel.infoData = await getLatestTimestamp(data.number)
-        } catch (e) {
-          await notifyWithThreshold('fetch-timestamp-error', 5, TIME_1_M * 10, `${e}`, 'Check if CKB node is offline and its JSON RPC is reachable.')
-          return
-        }
-        since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteTimestamp)
-        break
-      case 'quote':
-        try {
-          infoModel.infoData = await getCkbPrice()
-        } catch (e) {
-          if (e.toString().includes('invalid json')) {
-            logger.error(`Failed to parse the response from coingecko as JSON, the raw data is: ${e.extra_data}`)
-            await notifyWithThreshold('fetch-quote-error', 5, TIME_1_M * 10, `Failed to parse the response from coingecko as JSON too many times.`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
-          } else {
-            await notifyWithThreshold('fetch-quote-error', 5, TIME_1_M * 10, `${e}`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
-          }
-          return
-        }
-        break
-    }
-
-    // Build inputs of transaction
-    let inputs = []
-    inputs.push({
-      previousOutput: rpcFormat().toOutPoint(indexOutPoint),
-      since: '0x0',
-    })
-    inputs.push({
-      previousOutput: rpcFormat().toOutPoint(infoOutPoint),
-      since,
-    })
-
-    let collected
-    try {
-      collected = await collectInputs(lockScript, config.fee.update)
-      inputs = inputs.concat(collected.inputs)
-    } catch (e) {
-      if (e.toString().includes('capacity')) {
-        logger.error(`Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
-        await notifyWithThreshold('collect-inputs-error', 5, TIME_1_M * 5, `Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`, 'Check if the balance of deploy address is enough.')
-      } else {
-        logger.error(`Collect inputs error.(${e.toString()})`)
-        await notifyWithThreshold('collect-inputs-error', 5, TIME_1_M * 5, `Collect inputs error.(${e.toString()})`, 'Check if ckb-indexer is offline and the get_cells interface is reachable.')
-      }
-      return
-    }
-
-    // Build outputs of transaction
-    const outputs = [
-      rpcFormat().toOutput(indexOutput),
-      rpcFormat().toOutput(infoOutput),
-    ]
-
-    if (collected.capacity > config.fee.update) {
-      // Change redundant capacity
-      outputs.push({
-        capacity: toHex(collected.capacity - config.fee.update),
-        lock: lockScript,
-        type: null,
-      })
-    }
-
-    // Build outputs_data of transaction
-    const outputsData = [
-      indexModel.toString(),
-      infoModel.toString(),
-    ]
-
-    if (outputs.length > 2) {
-      // Keep outputs_data has the same length with outputs
-      for (let i = 2; i < outputs.length; i++) {
-        outputsData.push('0x')
-      }
-    }
-
-    // Build and sign transaction
-    const rawTx = {
-      version: '0x0',
-      cellDeps: config.CellDeps,
-      headerDeps: [],
-      inputs,
-      outputs,
-      outputsData,
-      witnesses: inputs.map((_, _i) => EMPTY_WITNESS_ARGS)
-    }
-
-    // Sign and push transaction
-    try {
-      await ckb.loadDeps()
-    } catch (e) {
-      logger.error(`Load cell_deps from node RPC API failed.(${e})`)
-      await notifyWithThreshold('load-cell-deps-error', 5, TIME_1_M * 10, `Load cell_deps from node RPC API failed.(${e})`, 'Check if CKB node is offline and its JSON RPC is reachable.')
-      return
-    }
-
-    let signedRawTx
-    try {
-      signedRawTx = ckb.signTransaction(config[argv.type].PayersPrivateKey)(rawTx)
-    } catch (e) {
-      logger.error(`Sign transaction failed.(${e})`)
-      await notifyWithThrottle('sign-transaction-error', TIME_1_M * 10, `Sign transaction failed.(${e})`, 'Try to find out what the error message means it mostly because the private key is not match.')
-      return
-    }
-
-    try {
-      txHash = await ckb.rpc.sendTransaction(signedRawTx, 'passthrough')
-      waitedBlocks = 0
-
-      logger.info(`Push transaction, tx hash: ${txHash}`)
-    } catch (err) {
+      let resultOfInfo: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: InfoModel }
       try {
-        let data = JSON.parse(err.message)
-        switch (data.code) {
-          case -301:
-          case -302:
-          case -1107:
-            // These error are caused by cell occupation, could retry automatically.
-            logger.warn(`Update cell failed.(${data.message})`, { code: data.code })
-            return
-          default:
-            logger.error(`Update cell failed.(${data.message})`, { code: data.code })
-            await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell failed.(${data.message})`, 'Try to find out what the error message means.')
-        }
+        resultOfInfo = await findInfoCell(infoCellTypeScript, indexModel.index)
       } catch (e) {
-        logger.error(`Update cell occurred unknown error.(${err})`)
-        await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell occurred unknown error.(${err})`, 'Try to find out what the error message means.')
-
+        logger.error(`Failed to find InfoCells: ${e.toString()}`)
+        return
       }
-    }
+      let { out_point: infoOutPoint, output: infoOutput, model: infoModel } = resultOfInfo
+      let since = '0x0'
+      let lockScript = config[argv.type].PayersLockScript
+      switch (argv.type) {
+        case 'blocknumber':
+          infoModel.infoData = BigInt(data.number)
+          since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteHeight)
+          break
+        case 'timestamp':
+          try {
+            infoModel.infoData = await getLatestTimestamp(data.number)
+          } catch (e) {
+            await notifyWithThreshold('fetch-timestamp-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `${e}`, 'Check if CKB node is offline and its JSON RPC is reachable.')
+            return
+          }
+          since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteTimestamp)
+          break
+        case 'quote':
+          try {
+            infoModel.infoData = await getCkbPrice()
+          } catch (e) {
+            if (e.toString().includes('invalid json')) {
+              logger.error(`Failed to parse the response from coingecko as JSON, the raw data is: ${e.extra_data}`)
+              await notifyWithThreshold('fetch-quote-error', THEORETIC_BLOCK_1_M * 10, TIME_1_M * 10, `Failed to parse the response from coingecko as JSON too many times.`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
+            } else {
+              await notifyWithThreshold('fetch-quote-error', THEORETIC_BLOCK_1_M * 10, TIME_1_M * 10, `${e}`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
+            }
+            return
+          }
+          break
+      }
+
+      // Build inputs of transaction
+      let inputs = []
+      inputs.push({
+        previousOutput: rpcFormat().toOutPoint(indexOutPoint),
+        since: '0x0',
+      })
+      inputs.push({
+        previousOutput: rpcFormat().toOutPoint(infoOutPoint),
+        since,
+      })
+
+      let collected
+      try {
+        collected = await collectInputs(lockScript, config.fee.update)
+        inputs = inputs.concat(collected.inputs)
+      } catch (e) {
+        if (e.toString().includes('capacity')) {
+          logger.error(`Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
+          await notifyWithThreshold('collect-inputs-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`, 'Check if the balance of deploy address is enough.')
+        } else {
+          logger.error(`Collect inputs error.(${e.toString()})`)
+          await notifyWithThreshold('collect-inputs-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `Collect inputs error.(${e.toString()})`, 'Check if ckb-indexer is offline and the get_cells interface is reachable.')
+        }
+        return
+      }
+
+      // Build outputs of transaction
+      const outputs = [
+        rpcFormat().toOutput(indexOutput),
+        rpcFormat().toOutput(infoOutput),
+      ]
+
+      if (collected.capacity > config.fee.update) {
+        // Change redundant capacity
+        outputs.push({
+          capacity: toHex(collected.capacity - config.fee.update),
+          lock: lockScript,
+          type: null,
+        })
+      }
+
+      // Build outputs_data of transaction
+      const outputsData = [
+        indexModel.toString(),
+        infoModel.toString(),
+      ]
+
+      if (outputs.length > 2) {
+        // Keep outputs_data has the same length with outputs
+        for (let i = 2; i < outputs.length; i++) {
+          outputsData.push('0x')
+        }
+      }
+
+      // Build and sign transaction
+      const rawTx = {
+        version: '0x0',
+        cellDeps: config.CellDeps,
+        headerDeps: [],
+        inputs,
+        outputs,
+        outputsData,
+        witnesses: inputs.map((_, _i) => EMPTY_WITNESS_ARGS)
+      }
+
+      // Sign and push transaction
+      try {
+        await ckb.loadDeps()
+      } catch (e) {
+        logger.error(`Load cell_deps from node RPC API failed.(${e})`)
+        await notifyWithThreshold('load-cell-deps-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `Load cell_deps from node RPC API failed.(${e})`, 'Check if CKB node is offline and its JSON RPC is reachable.')
+        return
+      }
+
+      let signedRawTx
+      try {
+        signedRawTx = ckb.signTransaction(config[argv.type].PayersPrivateKey)(rawTx)
+      } catch (e) {
+        logger.error(`Sign transaction failed.(${e})`)
+        await notifyWithThrottle('sign-transaction-error', TIME_1_M * 10, `Sign transaction failed.(${e})`, 'Try to find out what the error message means it mostly because the private key is not match.')
+        return
+      }
+
+      try {
+        txHash = await ckb.rpc.sendTransaction(signedRawTx, 'passthrough')
+        waitedBlocks = 0
+
+        logger.info(`Push transaction, tx hash: ${txHash}`)
+      } catch (err) {
+        try {
+          let data = JSON.parse(err.message)
+          switch (data.code) {
+            case -301:
+            case -302:
+            case -1107:
+              // These error are caused by cell occupation, could retry automatically.
+              logger.warn(`Update cell failed.(${data.message})`, { code: data.code })
+              return
+            default:
+              logger.error(`Update cell failed.(${data.message})`, { code: data.code })
+              await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell failed.(${data.message})`, 'Try to find out what the error message means.')
+          }
+        } catch (e) {
+          logger.error(`Update cell occurred unknown error.(${err})`)
+          await notifyWithThrottle('update-error', TIME_1_M * 10, `Update cell occurred unknown error.(${err})`, 'Try to find out what the error message means.')
+
+        }
+      }
+    })().catch(_ => {})
+
+    return
   })
 }
 
