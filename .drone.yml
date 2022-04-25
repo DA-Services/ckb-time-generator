@@ -47,11 +47,11 @@ pipeline:
     user: root
     secrets: [ rsync_key, host_ip_test ]
     source: ./
-    target: /mnt/ckb-time-generator
+    target: /vdd/ckb/ckb-time-generator
     script:
       - 'export NVM_DIR="$HOME/.nvm"'
       - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
-      - cd /mnt/ckb-time-generator
+      - cd /vdd/ckb/ckb-time-generator
       - npm run reload_testnet
     when:
       branch: [test, develop]
