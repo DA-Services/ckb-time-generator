@@ -4,7 +4,7 @@
   "description": "The generator of time_index_state_type_script and time_info_type_script",
   "main": "index.js",
   "repository": "https://github.com/duanyytop/ckb-time-scripts-generator",
-  "author": "eric.wang",
+  "author": "Link <xieaolin@gmail.com>",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
@@ -15,23 +15,23 @@
     "reload_testnet": "NODE_ENV=testnet pm2 reload ecosystem.config.js"
   },
   "dependencies": {
-    "@nervosnetwork/ckb-sdk-core": "^0.43.0",
-    "@nervosnetwork/ckb-sdk-utils": "^0.43.0",
+    "@nervosnetwork/ckb-sdk-core": "^0.102",
+    "@nervosnetwork/ckb-sdk-utils": "^0.102",
     "@types/yargs": "^17.0.2",
     "config": "^3.3.6",
     "dayjs": "^1.10.6",
     "node-fetch": "^2.6.1",
     "typescript": "^4.3.5",
-    "winston": "^3.3.3",
+    "winston": "^3.4.0",
     "ws": "^7.5.2",
     "yargs": "^17.1.0"
   },
   "devDependencies": {
-    "@nervosnetwork/ckb-sdk-rpc": "^0.43.0",
-    "@nervosnetwork/ckb-types": "^0.43.0",
+    "@nervosnetwork/ckb-sdk-rpc": "^0.102",
+    "@nervosnetwork/ckb-types": "^0.102",
     "@types/node": "^16.0.1",
     "@types/node-fetch": "^2.5.11",
-    "@types/winston": "^2.4.4",
+    "@types/winston": "^2.4.0",
     "@types/ws": "^7.4.7",
     "cross-env": "^7.0.3",
     "eslint": "^7.30.0",

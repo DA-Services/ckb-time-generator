@@ -2,8 +2,9 @@ import fetch from 'node-fetch'
 import { networkInterfaces } from 'os'
 
 import config from '../config'
-import { CellType, SinceFlag } from '../const'
+import { CellType, LOWEST_CELL_CAPACITY, SinceFlag, TIME_1_M } from '../const'
 import { getCells, rpcFormat } from './rpc'
+import { rootLogger } from '../log'
 
 export function remove0x (hex: string) {
   if (hex.startsWith('0x')) {
@@ -84,8 +85,15 @@ export async function getCkbPrice(): Promise<BigInt> {
   throw new Error(`Parse quote from the response of coingecko API failed, require manually updating code!`)
 }
 
-export async function collectInputs (lockScript: CKBComponents.Script, needCapacity: BigInt) {
+export async function collectInputs (lockScript: CKBComponents.Script, needCapacity: bigint) {
   const liveCells = await getCells(lockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
+
+  const addressTotalCapacity = liveCells.map(cell => BigInt(cell.output.capacity)).reduce((prev, curr) => prev + curr, BigInt(0))
+  if (addressTotalCapacity <= BigInt(10_000_000_000)) {
+    const logger = rootLogger.child({ command: 'update', cell_type: 'unknown' })
+    logger.error('The THQ service is about to run out of transaction fee.')
+    notifyWithThrottle('collect-inputs-warning', TIME_1_M * 10, 'The THQ service is about to run out of transaction fee.', 'Please recharge as soon as possible.')
+  }
 
   let inputs = []
   let totalCapacity = BigInt(0)
@@ -95,7 +103,7 @@ export async function collectInputs (lockScript: CKBComponents.Script, needCapac
       since: '0x0',
     })
     totalCapacity += BigInt(cell.output.capacity)
-    if (totalCapacity >= needCapacity) {
+    if (totalCapacity >= needCapacity + BigInt(LOWEST_CELL_CAPACITY)) {
       break
     }
   }
