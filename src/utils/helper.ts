@@ -63,24 +63,28 @@ export function dataToSince (data: BigInt, flag: SinceFlag) {
  * precision: 1/10000 of 1 cent, 0.000001
  */
 export async function getCkbPrice(): Promise<BigInt> {
+  console.log(1.4)
   const res = await fetch('https://api1.binance.com/api/v3/ticker/price?symbol=CKBUSDT')
   if (!res.ok) {
+    console.log(1.1)
     throw new Error(`Fetch binance api failed: ${res.status} ${res.statusText}`)
   }
 
   let raw = '';
   let data = null;
   try {
+    console.log(1.2)
     raw = await res.text()
     data = JSON.parse(raw)
   } catch (e) {
+    console.log(1.3)
     e.extra_data = raw
     throw e
   }
 
   if (data?.price) {
     let price = data?.price.parseFloat()
-    return BigInt(data?.price * 100 * 10000 | 0)
+    return BigInt(price * 100 * 10000 | 0)
   }
 
   throw new Error(`Parse quote from the response of coingecko API failed, require manually updating code!`)
