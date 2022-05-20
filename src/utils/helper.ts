@@ -83,7 +83,7 @@ export async function getCkbPrice(): Promise<BigInt> {
   }
 
   if (data?.price) {
-    let price = data?.price.parseFloat()
+    let price = parseFloat(data?.price)
     return BigInt(price * 100 * 10000 | 0)
   }
 
