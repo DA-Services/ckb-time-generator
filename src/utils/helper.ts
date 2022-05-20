@@ -63,9 +63,9 @@ export function dataToSince (data: BigInt, flag: SinceFlag) {
  * precision: 1/10000 of 1 cent, 0.000001
  */
 export async function getCkbPrice(): Promise<BigInt> {
-  const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd')
+  const res = await fetch('https://api1.binance.com/api/v3/ticker/price?symbol=CKBUSDT')
   if (!res.ok) {
-    throw new Error(`Fetch coingecko api failed: ${res.status} ${res.statusText}`)
+    throw new Error(`Fetch binance api failed: ${res.status} ${res.statusText}`)
   }
 
   let raw = '';
@@ -78,8 +78,9 @@ export async function getCkbPrice(): Promise<BigInt> {
     throw e
   }
 
-  if (data?.['nervos-network']?.usd) {
-    return BigInt(data?.['nervos-network']?.usd * 100 * 10000 | 0)
+  if (data?.price) {
+    let price = data?.price.parseFloat()
+    return BigInt(data?.price * 100 * 10000 | 0)
   }
 
   throw new Error(`Parse quote from the response of coingecko API failed, require manually updating code!`)
