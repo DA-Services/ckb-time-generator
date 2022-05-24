@@ -1,3 +1,5 @@
+import { Exchange, ascendex, binance, kucoin, huobi } from 'ccxt'
+
 export const FEE = BigInt(1000)
 export const INFO_CELL_CAPACITY = BigInt(400) * BigInt(100000000)
 export const SUM_OF_INFO_CELLS = 12 // 36 info cells, we can add more if necessary
@@ -25,3 +27,6 @@ export enum SinceFlag {
   AbsoluteHeight = '00',
   AbsoluteTimestamp = '40',
 }
+
+// These exchanges were picked from coinmarketcap.com and sorted base on their volume share on CKB/USDT market.
+export const EXCHANGES: Exchange[] = [new binance(), new huobi(), new ascendex(), new kucoin()]

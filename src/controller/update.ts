@@ -133,13 +133,8 @@ export async function updateController (argv: Arguments<{ type: string }>) {
           try {
             infoModel.infoData = await getCkbPrice()
           } catch (e) {
-            if (e.toString().includes('invalid json')) {
-              logger.error(`Failed to parse the response from market as JSON, the raw data is: ${e.extra_data}`)
-              await notifyWithThreshold('fetch-quote-error', THEORETIC_BLOCK_1_M * 10, TIME_1_M * 10, `Failed to parse the response from coingecko as JSON too many times.`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
-            } else {
-              logger.error(`Failed to parse the response from market as JSON, the error is: ${e}`)
-              await notifyWithThreshold('fetch-quote-error', THEORETIC_BLOCK_1_M * 10, TIME_1_M * 10, `${e}`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
-            }
+            logger.error(`Failed to fetch the quote from exchanges, the error is: ${e}`)
+            await notifyWithThreshold('fetch-quote-error', THEORETIC_BLOCK_1_M * 10, TIME_1_M * 10, `${e}`, 'Check if the coingecko API(https://api.coingecko.com/api/v3/simple/price?ids=nervos-network&vs_currencies=usd) is available.')
             return
           }
           break

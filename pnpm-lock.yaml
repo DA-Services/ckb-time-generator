@@ -10,6 +10,7 @@ specifiers:
   '@types/winston': ^2.4.0
   '@types/ws': ^7.4.7
   '@types/yargs': ^17.0.2
+  ccxt: ^1.83.71
   config: ^3.3.6
   cross-env: ^7.0.3
   dayjs: ^1.10.6
@@ -26,6 +27,7 @@ dependencies:
   '@nervosnetwork/ckb-sdk-core': 0.102.3
   '@nervosnetwork/ckb-sdk-utils': 0.102.3
   '@types/yargs': 17.0.10
+  ccxt: 1.83.71
   config: 3.3.7
   dayjs: 1.11.0
   node-fetch: 2.6.7
@@ -323,6 +325,12 @@ packages:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
     dev: true
+
+  /ccxt/1.83.71:
+    resolution: {integrity: sha512-Ry3WMk5wj6hRch9joFfy1VAaN/tr3LtJdyQz+vARvxbwytlCCDd5MPpQPXJV+f8I9QDWASsmKmbHl0ZtKBXOOw==}
+    engines: {node: '>=10.4.0'}
+    requiresBuild: true
+    dev: false
 
   /chalk/2.4.2:
     resolution: {integrity: sha512-Mti+f9lpJNcwF4tWV8/OrTTtF1gZi+f8FqlyAdouralcFWFQWF2+NgCHShjkCb+IFBLq9buZwE1xckQU4peSuQ==}

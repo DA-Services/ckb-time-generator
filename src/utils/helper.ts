@@ -2,7 +2,7 @@ import fetch from 'node-fetch'
 import { networkInterfaces } from 'os'
 
 import config from '../config'
-import { CellType, LOWEST_CELL_CAPACITY, SinceFlag, TIME_1_M } from '../const'
+import { CellType, EXCHANGES, LOWEST_CELL_CAPACITY, SinceFlag, TIME_1_M } from '../const'
 import { getCells, rpcFormat } from './rpc'
 import { rootLogger } from '../log'
 
@@ -58,32 +58,31 @@ export function dataToSince (data: BigInt, flag: SinceFlag) {
   return `0x${hex}`
 }
 
+
 /**
  * get ckb price
  * precision: 1/10000 of 1 cent, 0.000001
  */
 export async function getCkbPrice(): Promise<BigInt> {
-  const res = await fetch('https://api1.binance.com/api/v3/ticker/price?symbol=CKBUSDT')
-  if (!res.ok) {
-    throw new Error(`Fetch binance api failed: ${res.status} ${res.statusText}`)
+  // Try to get the quote of CKB/USDT from exchanges, break when it is successful at the first time.
+  let price = -1;
+  for (const exchange of EXCHANGES) {
+    try {
+      let ticker = await exchange.fetchTicker('CKB/USDT')
+      // The close price for last 24 hours, for more details please go to https://docs.ccxt.com/en/latest/manual.html#ticker-structure
+      price = ticker.close
+      break
+    } catch (err) {
+      const logger = rootLogger.child({ command: 'update', cell_type: 'unknown' })
+      logger.error(`Query the quote from ${exchange.name} failed, try the next exchange.`)
+    }
   }
 
-  let raw = '';
-  let data = null;
-  try {
-    raw = await res.text()
-    data = JSON.parse(raw)
-  } catch (e) {
-    e.extra_data = raw
-    throw e
+  if (price <= 0) {
+    throw new Error('Can not get a valid quote from any of the pre-defined exchange, require manually updating code!')
   }
 
-  if (data?.price) {
-    let price = parseFloat(data?.price)
-    return BigInt(price * 100 * 10000 | 0)
-  }
-
-  throw new Error(`Parse quote from the response of coingecko API failed, require manually updating code!`)
+  return BigInt(Math.floor(price * 100 * 10000))
 }
 
 export async function collectInputs (lockScript: CKBComponents.Script, needCapacity: bigint) {
