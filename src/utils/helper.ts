@@ -115,29 +115,6 @@ export async function collectInputs (lockScript: CKBComponents.Script, needCapac
   return { inputs, capacity: totalCapacity }
 }
 
-export async function notifyWecom(msg: string) {
-  try {
-    let res = await fetch(`https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${config.WECOM_API_KEY}`, {
-      method: 'post',
-      body: JSON.stringify({
-        msgtype: 'markdown',
-        markdown: {
-          content: `Service ckb-time-generator error:\n
-> Server IP: ${getCurrentIP()}
-> CKB WebSocket URL: ${config.CKB_WS_URL}
-> Reason: ${msg}`,
-          // mentioned_list: ["@all"],
-        }
-      })
-    })
-    if (res.status >= 400) {
-      console.error(`helper: send Wecom notify failed, response ${res.status} ${res.statusText}`)
-    }
-  } catch (e) {
-    console.error('helper: send Wecom notify failed:', e)
-  }
-}
-
 let thresholdSources: { [key: string]: { count: number, startAt: number } } = {};
 
 /**
@@ -194,7 +171,7 @@ export async function notifyWithThrottle(source: string, duration: number, msg: 
 export async function notifyLark(msg: string, how_to_fix = '') {
   try {
     let content: any[] = [
-      [{tag: 'text', un_escaped: true, text: `server_ip: ${getCurrentIP()}`}],
+      [{tag: 'text', un_escaped: true, text: `server: ${getCurrentServer()}`}],
       [{tag: 'text', un_escaped: true, text: `ckb_ws_url: ${config.CKB_WS_URL}`}],
       [{tag: 'text', un_escaped: true, text: `reason: ${msg}`}],
       [{tag: 'text', un_escaped: true, text: `how to fix: ${how_to_fix}`}],
@@ -224,6 +201,17 @@ export async function notifyLark(msg: string, how_to_fix = '') {
     }
   } catch (e) {
     console.error('helper: send Lark notify failed:', e)
+  }
+}
+
+export function getCurrentServer() {
+  let ip = getCurrentIP()
+  let servers = config.servers
+
+  if (servers && servers[ip]) {
+    return servers[ip]
+  } else {
+    ip
   }
 }
 
