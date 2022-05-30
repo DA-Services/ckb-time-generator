@@ -1,4 +1,5 @@
 import { Exchange, ascendex, binance, kucoin, huobi } from 'ccxt'
+import { HttpsProxyAgent } from 'https-proxy-agent'
 
 export const FEE = BigInt(1000)
 export const INFO_CELL_CAPACITY = BigInt(400) * BigInt(100000000)
@@ -28,5 +29,15 @@ export enum SinceFlag {
   AbsoluteTimestamp = '40',
 }
 
+console.log(process.env.http_proxy)
+console.log(process.env.https_proxy)
+
+const proxy = process.env.https_proxy ?? process.env.http_proxy
+const agent = proxy ? new HttpsProxyAgent(proxy) : null
 // These exchanges were picked from coinmarketcap.com and sorted base on their volume share on CKB/USDT market.
-export const EXCHANGES: Exchange[] = [new binance(), new huobi(), new ascendex(), new kucoin()]
+export const EXCHANGES: Exchange[] = [
+  new binance({ agent }),
+  new huobi({ agent }),
+  new ascendex({ agent }),
+  new kucoin({ agent })
+]
