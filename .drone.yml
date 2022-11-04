@@ -27,9 +27,9 @@ pipeline:
   # deploy production env
   deploy_production:
     image: drillster/drone-rsync
-    hosts: [$HOST_IP, $HOST_IP2, $HOST_IP3]
+    hosts: [$CKB_NODE3, $CKB_NODE5, $US_PUBLIC_IP]
     user: root
-    secrets: [ rsync_key, host_ip, host_ip2, host_ip3 ]
+    secrets: [ rsync_key, ckb_node3, ckb_node5, us_public_ip ]
     source: ./
     target: /data/code/ckb-time-generator
     script:
