@@ -38,7 +38,7 @@ const InfoTypeScript = {
 
 export default {
   CKB_NODE_RPC: 'http://127.0.0.1:8114',
-  CKB_NODE_INDEXER: 'http://127.0.0.1:8116',
+  CKB_NODE_INDEXER: 'http://127.0.0.1:8114',
   CKB_WS_URL: 'ws://127.0.0.1:28114',
   LARK_API_KEY: '',
 

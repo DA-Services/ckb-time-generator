@@ -1,4 +1,4 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
   '@nervosnetwork/ckb-sdk-core': ^0.102
@@ -10,7 +10,7 @@ specifiers:
   '@types/winston': ^2.4.0
   '@types/ws': ^7.4.7
   '@types/yargs': ^17.0.2
-  ccxt: ^1.83.71
+  ccxt: 1.83.71
   config: ^3.3.6
   cross-env: ^7.0.3
   dayjs: ^1.10.6
@@ -48,7 +48,7 @@ devDependencies:
   cross-env: 7.0.3
   eslint: 7.32.0
   husky: 7.0.4
-  ts-node: 10.7.0_ddaac8e123aeb260f586984cee874848
+  ts-node: 10.7.0_3wvmryjdv2zgb5mgtbgo5b2ija
 
 packages:
 
@@ -1139,7 +1139,7 @@ packages:
   /triple-beam/1.3.0:
     resolution: {integrity: sha512-XrHUvV5HpdLmIj4uVMxHggLbFSZYIn7HEWsqePZcI50pco+MPqJ50wMGY794X7AOOhxOBAjbkqfAbEe/QMp2Lw==}
 
-  /ts-node/10.7.0_ddaac8e123aeb260f586984cee874848:
+  /ts-node/10.7.0_3wvmryjdv2zgb5mgtbgo5b2ija:
     resolution: {integrity: sha512-TbIGS4xgJoX2i3do417KSaep1uRAW/Lu+WAL2doDHC0D6ummjirVOXU5/7aiZotbQ5p1Zp9tP7U6cYhA0O7M8A==}
     hasBin: true
     peerDependencies:
@@ -1189,7 +1189,6 @@ packages:
     resolution: {integrity: sha512-yNIatDa5iaofVozS/uQJEl3JRWLKKGJKh6Yaiv0GLGSuhpFJe7P3SbHZ8/yjAHRQwKRoA6YZqlfjXWmVzoVSMw==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: false
 
   /uri-js/4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
