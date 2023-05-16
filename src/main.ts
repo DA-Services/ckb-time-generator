@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 
 import { statusController } from './controller/status'
 import { fixController } from './controller/fix'
@@ -9,7 +10,7 @@ import { updateController } from './controller/update'
 import { playgroundController } from './controller/playground'
 import { statusOfExchangesController } from './controller/status-of-exchanges'
 
-yargs(process.argv.slice(2))
+yargs(hideBin(process.argv))
   .usage('Usage: $0 <command> [options]')
   .command('status', 'Check IndexStateCells and InfoCells status on blockchain.', (yargs) => {
     return yargs

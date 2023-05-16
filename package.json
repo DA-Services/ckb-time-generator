@@ -18,7 +18,7 @@
     "@nervosnetwork/ckb-sdk-core": "^0.102",
     "@nervosnetwork/ckb-sdk-utils": "^0.102",
     "@types/yargs": "^17.0.2",
-    "ccxt": "1.83.71",
+    "ccxt": "~2.1.0",
     "config": "^3.3.6",
     "dayjs": "^1.10.6",
     "https-proxy-agent": "^5.0.1",
@@ -26,7 +26,7 @@
     "typescript": "^4.3.5",
     "winston": "^3.4.0",
     "ws": "^7.5.2",
-    "yargs": "^17.1.0"
+    "yargs": "^17.7.0"
   },
   "devDependencies": {
     "@nervosnetwork/ckb-sdk-rpc": "^0.102",

@@ -29,8 +29,8 @@ export enum SinceFlag {
   AbsoluteTimestamp = '40',
 }
 
-console.log(process.env.http_proxy)
-console.log(process.env.https_proxy)
+// console.log(process.env.http_proxy)
+// console.log(process.env.https_proxy)
 
 const proxy = process.env.https_proxy ?? process.env.http_proxy
 const agent = proxy ? new HttpsProxyAgent(proxy) : null
