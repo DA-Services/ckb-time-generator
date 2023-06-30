@@ -15,8 +15,8 @@
     "reload_testnet": "NODE_ENV=testnet pm2 reload ecosystem.config.js"
   },
   "dependencies": {
-    "@nervosnetwork/ckb-sdk-core": "^0.102",
-    "@nervosnetwork/ckb-sdk-utils": "^0.102",
+    "@nervosnetwork/ckb-sdk-core": "=0.109",
+    "@nervosnetwork/ckb-sdk-utils": "=0.109",
     "@types/yargs": "^17.0.2",
     "ccxt": "~2.1.0",
     "config": "^3.3.6",
@@ -29,8 +29,8 @@
     "yargs": "^17.7.0"
   },
   "devDependencies": {
-    "@nervosnetwork/ckb-sdk-rpc": "^0.102",
-    "@nervosnetwork/ckb-types": "^0.102",
+    "@nervosnetwork/ckb-sdk-rpc": "^0.109",
+    "@nervosnetwork/ckb-types": "^0.109",
     "@types/node": "^16.0.1",
     "@types/node-fetch": "^2.5.11",
     "@types/winston": "^2.4.0",
@@ -42,7 +42,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint"
+      "pre-commit": "pnpm lint"
     }
   }
 }

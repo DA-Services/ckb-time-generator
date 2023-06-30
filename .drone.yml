@@ -41,17 +41,17 @@ pipeline:
       branch: [master, main]
 
   # deploy_test_env
-  deploy_test:
-    image: drillster/drone-rsync
-    hosts: [$HOST_IP_TEST]
-    user: root
-    secrets: [ rsync_key, host_ip_test ]
-    source: ./
-    target: /mnt/ckb/ckb-time-generator
-    script:
-      - 'export NVM_DIR="$HOME/.nvm"'
-      - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
-      - cd /mnt/ckb/ckb-time-generator
-      - npm run reload_testnet
-    when:
-      branch: [test, develop]
+  # deploy_test:
+  #   image: drillster/drone-rsync
+  #   hosts: [$HOST_IP_TEST]
+  #   user: root
+  #   secrets: [ rsync_key, host_ip_test ]
+  #   source: ./
+  #   target: /mnt/ckb/ckb-time-generator
+  #   script:
+  #     - 'export NVM_DIR="$HOME/.nvm"'
+  #     - '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"'
+  #     - cd /mnt/ckb/ckb-time-generator
+  #     - npm run reload_testnet
+  #   when:
+  #     branch: [test, develop]

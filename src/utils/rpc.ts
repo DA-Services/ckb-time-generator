@@ -25,6 +25,7 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
         },
         script_type: type,
         filter: filter,
+        with_data: true,
       },
       'asc',
       '0x64',
