@@ -10,6 +10,10 @@ import { updateController } from './controller/update'
 import { playgroundController } from './controller/playground'
 import { statusOfExchangesController } from './controller/status-of-exchanges'
 
+// import config from './config'
+// console.log('config:', config)
+// process.exit(1)
+
 yargs(hideBin(process.argv))
   .usage('Usage: $0 <command> [options]')
   .command('status', 'Check IndexStateCells and InfoCells status on blockchain.', (yargs) => {
