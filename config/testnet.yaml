@@ -1,13 +1,13 @@
 ---
 CellDeps:
   # index-state-cell-type
-  - outPoint: { txHash: '0xd48ebd7c52ee3793ccaeef9ab40c29281c1fc4e901fb52b286fc1af74532f1cb', index: '0x0' }
+  - outPoint: { txHash: '0x654f8a271dde2d99f548ff5b9369a55c0cfbe19a315efb5dacf34f72d7f3ea64', index: '0x0' }
     depType: 'code'
   # info-cell-type
-  - outPoint: { txHash: '0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37', index: '0x0' }
+  - outPoint: { txHash: '0x9155635997e8d59ccbf5e160a138c299a195837870fd8acf592da73c1b053a73', index: '0x0' }
     depType: 'code'
   # ckb signall lock
-  - outPoint: { txHash: '0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c', index: '0x0' }
+  - outPoint: { txHash: '0xf8de3bb47d055cdf460d93a2a6e1b05f7432f9777c8c474abf4eec1d4aee5d37', index: '0x0' }
     depType: 'depGroup'
 
 IndexStateTypeScript:
