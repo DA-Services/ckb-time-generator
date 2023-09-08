@@ -1,14 +1,18 @@
 # ckb-time-generator
 
+[![ci](https://github.com/dotbitHQ/ckb-time-generator/actions/workflows/ci.yaml/badge.svg)](https://github.com/dotbitHQ/ckb-time-generator/actions/workflows/ci.yaml)
+
 The generator of [ckb-time-scripts](https://github.com/DeAccountSystems/ckb-time-script).
 
 
 ## How to Work
 
-- Clone and install every dependencies.
-- Copy `config/default.ts` to `config/local.ts`, edit configs as needed.
-- Build with `npm run build`, each time you update `config/local.ts` it is needed to rebuild.
-- Run with `npm run reload_testnet` or `npm run reload_production` base on environment.
+- Clone and install every dependencies with [npm](https://www.npmjs.com/).
+- Install [pm2](https://pm2.keymetrics.io/docs/usage/quick-start/) globally.
+- Copy `config/{env}.yaml` to `config/local-{env}.yaml`, edit configs as needed.
+- Run with `npm run reload_testnet` or `npm run reload_mainnet` base on environment.
+
+> If it is needed to kown more details of the config file loading order, click this link [node-config](https://github.com/node-config/node-config/wiki/Configuration-Files#file-load-order) .
 
 
 ## Tool Commands
@@ -24,21 +28,16 @@ Same as `timestamp` other option of `-t` can be `blocknumber` and `quote`, for m
 
 ## Development
 
-First, you need to create `config/local.ts`, input private keys like below:
+First, you need to create `config/local-{env}.yaml`, input private keys like below:
 
 ```typescript
-export default {
-  loglevel: 'debug',
-  timestamp: {
-    PayersPrivateKey: '0x000000000...',
-  },
-  blocknumber: {
-    PayersPrivateKey: '0x000000000...',
-  },
-  quote: {
-    PayersPrivateKey: '0x000000000...',
-  }
-}
+loglevel: 'debug'
+timestamp:
+  PayersPrivateKey: '0x000000000...'
+blocknumber:
+  PayersPrivateKey: '0x000000000...'
+quote:
+  PayersPrivateKey: '0x000000000...'
 ```
 
 Then, you will be able to run commands in testnet environment like below:
