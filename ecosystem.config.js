@@ -1,7 +1,7 @@
 const packageJson = require('./package.json')
 
 function generateApp (name, entry, args, env) {
-  const isProd = env === 'production'
+  const isProd = env === 'mainnet'
   const appName = `${packageJson.name}_${name}`
 
   return {

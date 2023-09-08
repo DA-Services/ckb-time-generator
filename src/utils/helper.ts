@@ -168,7 +168,7 @@ export async function notifyWithThrottle(source: string, duration: number, msg: 
   await notifyLark(msg, how_to_fix)
 }
 
-export async function notifyLark(msg: string, how_to_fix = '') {
+export async function notifyLark(msg: string, how_to_fix = '', should_at = true) {
   try {
     const content: any[] = [
       [{tag: 'text', un_escaped: true, text: `server: ${getCurrentServer()}`}],
@@ -176,28 +176,30 @@ export async function notifyLark(msg: string, how_to_fix = '') {
       [{tag: 'text', un_escaped: true, text: `reason: ${msg}`}],
       [{tag: 'text', un_escaped: true, text: `how to fix: ${how_to_fix}`}],
     ]
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'mainnet' && should_at) {
       content.push([{tag: 'at', user_id: 'all'}])
-    }
-
-    const res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LARK_API_KEY}`, {
-      method: 'post',
-      body: JSON.stringify({
-        email: 'xieaolin@gmail.com',
-        msg_type: 'post',
-        content: {
-          post: {
-            zh_cn: {
-              title: `=== THQ Node 服务告警 (${process.env.NODE_ENV}) ===`,
-              content,
-            }
-          },
-        }
+      const res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LARK_API_KEY}`, {
+        method: 'post',
+        body: JSON.stringify({
+          email: 'xieaolin@gmail.com',
+          msg_type: 'post',
+          content: {
+            post: {
+              zh_cn: {
+                title: `=== THQ Node 服务告警 (${process.env.NODE_ENV}) ===`,
+                content,
+              }
+            },
+          }
+        })
       })
-    })
 
-    if (res.status >= 400) {
-      console.error(`helper: send Lark notify failed, response ${res.status} ${res.statusText}`)
+      if (res.status >= 400) {
+        console.error(`helper: send Lark notify failed, response ${res.status} ${res.statusText}`)
+      }
+    } else {
+      const logger = rootLogger.child({ command: 'update', cell_type: 'unknown' })
+      logger.warn(`msg: ${msg}, how_to_fix: ${how_to_fix}`)
     }
   } catch (e) {
     console.error('helper: send Lark notify failed:', e)
