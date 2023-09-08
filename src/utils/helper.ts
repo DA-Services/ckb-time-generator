@@ -13,7 +13,7 @@ export function remove0x (hex: string) {
   return hex
 }
 
-export function toHex(num: number | BigInt) {
+export function toHex(num: number | bigint) {
   return `0x${num.toString(16)}`
 }
 
@@ -44,12 +44,12 @@ export function getTypeScriptOfIndexStateCell(type: CellType): CKBComponents.Scr
   }
 }
 
-export function dataToSince (data: BigInt, flag: SinceFlag) {
+export function dataToSince (data: bigint, flag: SinceFlag) {
   let hex: string
   if (flag == SinceFlag.AbsoluteHeight) {
     hex = data.toString(16)
   } else {
-    let buf = Buffer.alloc(8)
+    const buf = Buffer.alloc(8)
     buf.writeBigUInt64BE(data as bigint)
     hex = buf.toString('hex')
     hex = flag + hex.slice(2)
@@ -63,12 +63,12 @@ export function dataToSince (data: BigInt, flag: SinceFlag) {
  * get ckb price
  * precision: 1/10000 of 1 cent, 0.000001
  */
-export async function getCkbPrice(): Promise<BigInt> {
+export async function getCkbPrice(): Promise<bigint> {
   // Try to get the quote of CKB/USDT from exchanges, break when it is successful at the first time.
   let price = -1;
   for (const exchange of EXCHANGES) {
     try {
-      let ticker = await exchange.fetchTicker('CKB/USDT')
+      const ticker = await exchange.fetchTicker('CKB/USDT')
       // The close price for last 24 hours, for more details please go to https://docs.ccxt.com/en/latest/manual.html#ticker-structure
       price = ticker.close
       break
@@ -95,15 +95,15 @@ export async function collectInputs (lockScript: CKBComponents.Script, needCapac
     notifyWithThrottle('collect-inputs-warning', TIME_1_M * 10, 'The THQ service is about to run out of transaction fee.', 'Please recharge as soon as possible.')
   }
 
-  let inputs = []
+  const inputs = []
   let totalCapacity = BigInt(0)
-  for (let cell of liveCells) {
+  for (const cell of liveCells) {
     inputs.push({
       previousOutput: rpcFormat().toOutPoint(cell.out_point),
       since: '0x0',
     })
     totalCapacity += BigInt(cell.output.capacity)
-    if (totalCapacity >= needCapacity + BigInt(LOWEST_CELL_CAPACITY)) {
+    if (totalCapacity >= needCapacity + LOWEST_CELL_CAPACITY) {
       break
     }
   }
@@ -115,7 +115,7 @@ export async function collectInputs (lockScript: CKBComponents.Script, needCapac
   return { inputs, capacity: totalCapacity }
 }
 
-let thresholdSources: { [key: string]: { count: number, startAt: number } } = {};
+const thresholdSources: { [key: string]: { count: number, startAt: number } } = {};
 
 /**
  * Send notification only when it happens multiple times in period
@@ -128,7 +128,7 @@ let thresholdSources: { [key: string]: { count: number, startAt: number } } = {}
  * @returns {Promise<void>}
  */
 export async function notifyWithThreshold(source: string, max_count: number, period: number, msg: string, how_to_fix = '') {
-  let now = Date.now()
+  const now = Date.now()
   if (thresholdSources[source]) {
     let { count, startAt } = thresholdSources[source];
     if (now - startAt <= period) {
@@ -156,10 +156,10 @@ export async function notifyWithThreshold(source: string, max_count: number, per
   }
 }
 
-let throttleSources = {};
+const throttleSources = {};
 export async function notifyWithThrottle(source: string, duration: number, msg: string, how_to_fix = '') {
   // Limit notify frequency.
-  let now = Date.now()
+  const now = Date.now()
   if (now - throttleSources[source] <= duration) {
     return
   }
@@ -170,7 +170,7 @@ export async function notifyWithThrottle(source: string, duration: number, msg: 
 
 export async function notifyLark(msg: string, how_to_fix = '') {
   try {
-    let content: any[] = [
+    const content: any[] = [
       [{tag: 'text', un_escaped: true, text: `server: ${getCurrentServer()}`}],
       [{tag: 'text', un_escaped: true, text: `ckb_ws_url: ${config.CKB_WS_URL}`}],
       [{tag: 'text', un_escaped: true, text: `reason: ${msg}`}],
@@ -180,7 +180,7 @@ export async function notifyLark(msg: string, how_to_fix = '') {
       content.push([{tag: 'at', user_id: 'all'}])
     }
 
-    let res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LARK_API_KEY}`, {
+    const res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LARK_API_KEY}`, {
       method: 'post',
       body: JSON.stringify({
         email: 'xieaolin@gmail.com',
@@ -205,8 +205,8 @@ export async function notifyLark(msg: string, how_to_fix = '') {
 }
 
 export function getCurrentServer() {
-  let ip = getCurrentIP()
-  let servers = config.servers
+  const ip = getCurrentIP()
+  const servers = config.servers
 
   if (servers && servers[ip]) {
     return servers[ip]
@@ -216,7 +216,7 @@ export function getCurrentServer() {
 }
 
 export function getCurrentIP() {
-  let nets = networkInterfaces()
+  const nets = networkInterfaces()
   let address = 'parse failed';
 
   for (const name of Object.keys(nets)) {

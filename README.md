@@ -13,6 +13,8 @@ The generator of [ckb-time-scripts](https://github.com/DeAccountSystems/ckb-time
 
 ## Tool Commands
 
+> WARNING! Pnpm may not properly execute the following commands.
+
 - `npm run main -- status -t timestamp` check status of TimeCells and their IndexStateCell on-chain.
 - `npm run main -- fix -t timestamp` recycle redundant TimeCells and their IndexStateCell on-chain.
 - `npm run main -- update -t timestamp` keep updating TimeCells and their IndexStateCell on-chain.

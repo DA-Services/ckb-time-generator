@@ -8,41 +8,44 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "main": "cross-env NODE_CONFIG_DIR=./dist/config node dist/src/main.js",
+    "main": "cross-env NODE_ENV=mainnet NODE_CONFIG_DIR=./config node ./dist/main.js",
     "dev": "cross-env NODE_ENV=testnet NODE_CONFIG_DIR=./config ts-node src/main.ts",
-    "lint": "eslint src/**/*.js --fix",
-    "reload_production": "NODE_ENV=production pm2 reload ecosystem.config.js",
+    "lint": "eslint src/**/*.ts --fix",
+    "reload_production": "NODE_ENV=mainnet pm2 reload ecosystem.config.js",
     "reload_testnet": "NODE_ENV=testnet pm2 reload ecosystem.config.js"
   },
   "dependencies": {
-    "@nervosnetwork/ckb-sdk-core": "^0.102",
-    "@nervosnetwork/ckb-sdk-utils": "^0.102",
-    "@types/yargs": "^17.0.2",
-    "ccxt": "1.83.71",
-    "config": "^3.3.6",
-    "dayjs": "^1.10.6",
-    "https-proxy-agent": "^5.0.1",
+    "@nervosnetwork/ckb-sdk-core": "=0.109",
+    "@nervosnetwork/ckb-sdk-utils": "=0.109",
+    "ccxt": "~4.0.85",
+    "config": "^3.3.9",
+    "dayjs": "^1.11.9",
+    "https-proxy-agent": "^7.0.2",
+    "js-yaml": "^4.1.0",
     "node-fetch": "^2.6.1",
-    "typescript": "^4.3.5",
-    "winston": "^3.4.0",
-    "ws": "^7.5.2",
-    "yargs": "^17.1.0"
+    "winston": "^3.10.0",
+    "ws": "^8.14.0",
+    "yargs": "^17.7.0"
   },
   "devDependencies": {
-    "@nervosnetwork/ckb-sdk-rpc": "^0.102",
-    "@nervosnetwork/ckb-types": "^0.102",
+    "@nervosnetwork/ckb-sdk-rpc": "^0.109",
+    "@nervosnetwork/ckb-types": "^0.109",
     "@types/node": "^16.0.1",
     "@types/node-fetch": "^2.5.11",
     "@types/winston": "^2.4.0",
     "@types/ws": "^7.4.7",
+    "@types/yargs": "^17.0.2",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
     "cross-env": "^7.0.3",
-    "eslint": "^7.30.0",
+    "eslint": "^7.32.0",
     "husky": "^7.0.1",
-    "ts-node": "^10.1.0"
+    "ts-node": "^10.1.0",
+    "typescript": "^5.2.2"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn lint"
+      "pre-commit": "pnpm lint"
     }
   }
 }

@@ -1,15 +1,19 @@
 #!/usr/bin/env node
 
 import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 
 import { statusController } from './controller/status'
 import { fixController } from './controller/fix'
 import { createController } from './controller/create'
 import { updateController } from './controller/update'
-import { playgroundController } from './controller/playground'
 import { statusOfExchangesController } from './controller/status-of-exchanges'
 
-yargs(process.argv.slice(2))
+// import config from './config'
+// console.log('config:', config)
+// process.exit(1)
+
+yargs(hideBin(process.argv))
   .usage('Usage: $0 <command> [options]')
   .command('status', 'Check IndexStateCells and InfoCells status on blockchain.', (yargs) => {
     return yargs
@@ -36,9 +40,6 @@ yargs(process.argv.slice(2))
       .option('type', { alias: 't', desc: 'Type of cell', required: true, choices: ['timestamp', 'blocknumber', 'quote']})
       .example('$0 --type timestamp', 'Keep updating TimeCells and their IndexStateCells.')
   }, updateController)
-  .command('playground', 'For testing and debugging functions.', (yargs) => {
-    return yargs
-  }, playgroundController)
   .help().alias('h', 'help')
   .alias('v', 'version')
   .strict(true)

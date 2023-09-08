@@ -16,7 +16,7 @@ export const TIME_30_S = 30 * 1000;
 export const TIME_5_S = 5 * 1000;
 export const THEORETIC_BLOCK_1_M = 4;
 
-export const LOWEST_CELL_CAPACITY = 6_100_000_000;
+export const LOWEST_CELL_CAPACITY = BigInt(6_100_000_000);
 
 export enum CellType {
   Quote = '0x00',
@@ -29,8 +29,8 @@ export enum SinceFlag {
   AbsoluteTimestamp = '40',
 }
 
-console.log(process.env.http_proxy)
-console.log(process.env.https_proxy)
+// console.log(process.env.http_proxy)
+// console.log(process.env.https_proxy)
 
 const proxy = process.env.https_proxy ?? process.env.http_proxy
 const agent = proxy ? new HttpsProxyAgent(proxy) : null

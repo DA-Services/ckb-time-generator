@@ -1,0 +1,24 @@
+---
+CKB_NODE_RPC: 'http://127.0.0.1:8114'
+CKB_NODE_INDEXER: 'http://127.0.0.1:8114'
+CKB_WS_URL: 'ws://127.0.0.1:28114'
+LARK_API_KEY: ''
+
+loglevel: 'info'
+
+# Define the servers and its IP address, mainly used for making notification much more readable in lark.
+servers: {}
+
+# Transaction fee used for creating and updating cells.
+fee:
+  create: 1000
+  update: 1000
+
+CellDeps:
+# The type script used by IndexStateCell.
+IndexStateTypeScript:
+# The type script used by TimeCell, HeightCell and QuoteCell.
+InfoTypeScript:
+timestamp:
+blocknumber:
+quote:
