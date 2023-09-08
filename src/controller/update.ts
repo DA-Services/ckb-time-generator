@@ -260,10 +260,11 @@ class Server extends EventEmitter {
   protected ws: WebSocket
 
   protected heartbeatStatus: { id: number, timer: any, history: any[] }
-  protected eventStatus: { timer: any, history: any[] }
+  protected eventStatus: { timer_notify: any, timer_warn: any, history: any[] }
   protected txStatus: { txHash: string, waitedBlocks: number }
 
-  protected eventTimeoutLimit = TIME_1_M * 5
+  protected newBlockNotifyLimit = TIME_1_M * 3
+  protected newBlockWarnLimit = TIME_1_M * 9
 
   constructor (url: string, logger: Logger) {
     super()
@@ -283,7 +284,7 @@ class Server extends EventEmitter {
 
     this.ws = ws
     this.heartbeatStatus = { id: 1, timer: null, history: [] }
-    this.eventStatus = { timer: null, history: [] }
+    this.eventStatus = { timer_notify: null, timer_warn: null, history: [] }
     this.txStatus = { txHash: '', waitedBlocks: 0 }
   }
 
@@ -330,16 +331,28 @@ class Server extends EventEmitter {
       this.logger.debug(`Received new block[${BigInt(result.number)}]`)
 
       const status = this.eventStatus
-      clearTimeout(status.timer)
+      clearTimeout(status.timer_notify)
+      clearTimeout(status.timer_warn)
 
       this.emit('update', result)
 
-      status.timer = setTimeout(async () => {
-        this.logger.error(`There is no new block for ${this.eventTimeoutLimit / 1000} seconds.`)
-        // This error reports only once if no message received, so DO NOT use notifyWithThrottle to report.
-        // The key point here is eventTimeoutLimit, enlarge it is the only way
-        await notifyLark(`There is no new block for ${this.eventTimeoutLimit / 1000} seconds.`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
-      }, this.eventTimeoutLimit)
+      // This error reports only once if no message received, so DO NOT use notifyWithThrottle to report.
+      // The key point here is eventTimeoutLimit, enlarge it is the only way
+      status.timer_notify = setTimeout(async () => {
+        await notifyLark(
+          `There is no new block for ${this.newBlockNotifyLimit / 1000} seconds.`,
+          `This problem occasionally occurs and can be safely ignored, a formal warning will be triggered afer ${this.newBlockWarnLimit / 1000} seconds.`,
+          false,
+        )
+      }, this.newBlockNotifyLimit)
+
+      status.timer_warn = setTimeout(async () => {
+        await notifyLark(
+          `There is no new block for ${this.newBlockWarnLimit / 1000} seconds.`,
+          'Check if CKB node is offline and the get_tip_header interface is reachable.',
+          true,
+        )
+      }, this.newBlockWarnLimit)
     }
   }
 
@@ -347,7 +360,7 @@ class Server extends EventEmitter {
     this.logger.warn('Connection closed, will retry connecting later.', { code, reason })
 
     setTimeout(() => {
-      clearTimeout(this.eventStatus.timer)
+      clearTimeout(this.eventStatus.timer_notify)
       clearTimeout(this.heartbeatStatus.timer)
       this.connect()
     }, TIME_30_S)
