@@ -1,4 +1,4 @@
-lockfileVersion: '6.0'
+f lockfileVersion: '6.0'
 
 dependencies:
   '@nervosnetwork/ckb-sdk-core':

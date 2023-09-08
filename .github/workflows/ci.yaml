@@ -17,25 +17,20 @@ jobs:
         with:
           node-version: 18.x
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
       - name: Restore Cache
         id: cache-node_modules
         uses: actions/cache@v3
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.yaml') }}
 
       - name: Install dependency
-        run: pnpm install
+        run: npm install
 
       - name: List the state of node modules
         if: ${{ steps.cache-node_modules.outputs.cache-hit != 'true' }}
         continue-on-error: true
-        run: pnpm list
+        run: npm list
 
       - name: Build
         run: npm run build

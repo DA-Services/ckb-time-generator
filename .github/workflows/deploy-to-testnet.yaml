@@ -33,4 +33,4 @@ jobs:
         run: ls -la ./dist && rsync -a ./dist/ ${{ vars[matrix.target] }}:/mnt/ckb/ckb-time-generator
 
       - name: Restart pm2 on server contract
-        run: ssh ${{ vars[matrix.target] }} 'source ~/.zshrc && cd /mnt/ckb/ckb-time-generator && npm run reload_testnet'
+        run: ssh ${{ vars[matrix.target] }} 'source ~/.zshrc && cd /mnt/ckb/ckb-time-generator && npm install --omit=dev && npm run reload_testnet'
