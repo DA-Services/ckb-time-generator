@@ -7,7 +7,6 @@ import { statusController } from './controller/status'
 import { fixController } from './controller/fix'
 import { createController } from './controller/create'
 import { updateController } from './controller/update'
-import { playgroundController } from './controller/playground'
 import { statusOfExchangesController } from './controller/status-of-exchanges'
 
 // import config from './config'
@@ -41,9 +40,6 @@ yargs(hideBin(process.argv))
       .option('type', { alias: 't', desc: 'Type of cell', required: true, choices: ['timestamp', 'blocknumber', 'quote']})
       .example('$0 --type timestamp', 'Keep updating TimeCells and their IndexStateCells.')
   }, updateController)
-  .command('playground', 'For testing and debugging functions.', (yargs) => {
-    return yargs
-  }, playgroundController)
   .help().alias('h', 'help')
   .alias('v', 'version')
   .strict(true)

@@ -1,4 +1,4 @@
-import { inspect } from 'util'
+// import { inspect } from 'util'
 import { Arguments } from 'yargs'
 
 import config from '../config'
@@ -19,8 +19,8 @@ async function findRedundantIndexStateCells (typeScript: CKBComponents.Script) {
   indexStateCells = sortLiveCells(indexStateCells)
 
   const cells = indexStateCells.map(cell => {
-    let created_at_height = parseInt(cell.block_number, 16)
-    let capacity = parseInt(cell.output.capacity, 16)
+    const created_at_height = parseInt(cell.block_number, 16)
+    const capacity = parseInt(cell.output.capacity, 16)
     return {
       out_point: cell.out_point,
       created_at_height,
@@ -39,12 +39,12 @@ async function findRedundantInfoCells (typeScript: CKBComponents.Script) {
   let infoCells = await getCells(typeScript, 'type')
   infoCells = sortLiveCells(infoCells)
 
-  let cells: { out_point: RPC.OutPoint, created_at_height: number, capacity: number, index: number }[] = []
-  let existIndexes: number[] = []
+  const cells: { out_point: RPC.OutPoint, created_at_height: number, capacity: number, index: number }[] = []
+  const existIndexes: number[] = []
   for (const cell of infoCells) {
-    let model = InfoModel.fromHex(cell.output_data)
-    let created_at_height = parseInt(cell.block_number, 16)
-    let capacity = parseInt(cell.output.capacity, 16)
+    const model = InfoModel.fromHex(cell.output_data)
+    const created_at_height = parseInt(cell.block_number, 16)
+    const capacity = parseInt(cell.output.capacity, 16)
     if (model.index > SUM_OF_INFO_CELLS - 1) {
       // Cells with out of range index is redundant.
       cells.push({
@@ -106,8 +106,8 @@ export async function fixController (argv: Arguments<{ type: string }>) {
     })
   } else {
     let totalCapacity = 0
-    let inputs: CKBComponents.CellInput[] = []
-    let inputFn = cell => {
+    const inputs: CKBComponents.CellInput[] = []
+    const inputFn = cell => {
       totalCapacity += cell.capacity
       inputs.push({
         previousOutput: {
@@ -120,9 +120,9 @@ export async function fixController (argv: Arguments<{ type: string }>) {
     indexStateCells.forEach(inputFn)
     infoCells.forEach(inputFn)
 
-    let configOfType = config[argv.type]
+    const configOfType = config[argv.type]
 
-    let outputs: CKBComponents.CellOutput[] = [
+    const outputs: CKBComponents.CellOutput[] = [
       {
         capacity: toHex(totalCapacity - 100000),
         lock: configOfType.PayersLockScript,

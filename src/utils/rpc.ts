@@ -12,7 +12,7 @@ export const ckb = new CKB(config.CKB_NODE_RPC)
  * @param filter
  */
 export async function getCells (script: CKBComponents.Script, type, filter?): Promise<IndexerLiveCell[]> {
-  let payload = {
+  const payload = {
     id: 1,
     jsonrpc: '2.0',
     method: 'get_cells',
@@ -33,14 +33,14 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
   }
 
   const body = JSON.stringify(payload, null, '  ')
-  let res = await fetch(config.CKB_NODE_INDEXER, {
+  const res = await fetch(config.CKB_NODE_INDEXER, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body,
   })
-  let data = await res.json()
+  const data = await res.json()
 
   if (data.error) {
     throw new Error(`get_cells response error.(code: ${data.error.code}, message: ${data.error.message})`)

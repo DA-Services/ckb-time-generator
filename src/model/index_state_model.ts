@@ -22,7 +22,7 @@ export class IndexStateModel {
   }
 
   toString() {
-    let buf = Buffer.from([this.index, this.total])
+    const buf = Buffer.from([this.index, this.total])
     return `0x${buf.toString('hex')}`
   }
 
@@ -33,7 +33,7 @@ export class IndexStateModel {
     }
 
     // Dynamic limit current InfoCell to the maximum index configured by const.ts .
-    let index = buf[0] <= buf[1] ? buf[0] : buf[1];
+    const index = buf[0] <= buf[1] ? buf[0] : buf[1];
     return new IndexStateModel(index, buf[1])
   }
 }

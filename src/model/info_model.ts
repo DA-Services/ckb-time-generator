@@ -7,16 +7,16 @@ const InfoDataLength = 1 + 1 + 8;
 export class InfoModel {
   index: number
   dataType: number
-  infoData: BigInt
+  infoData: bigint
 
-  constructor(index, dataType, infoData: BigInt) {
+  constructor(index, dataType, infoData: bigint) {
     this.index = index
     this.dataType = dataType
     this.infoData = infoData
   }
 
   toString() {
-    let buf = Buffer.allocUnsafe(InfoDataLength)
+    const buf = Buffer.allocUnsafe(InfoDataLength)
     buf.writeUInt8(this.index, 0)
     buf.writeUInt8(this.dataType, 1)
     buf.writeBigUInt64BE(this.infoData as bigint, 2)
@@ -31,7 +31,7 @@ export class InfoModel {
       throw new Error(`Info data length error.(expected: ${InfoDataLength}, current: ${buf.length})`)
     }
 
-    let data = buf.readBigUInt64BE(2);
-    return new InfoModel(buf[0], buf[1], data as BigInt)
+    const data = buf.readBigUInt64BE(2);
+    return new InfoModel(buf[0], buf[1], data as bigint)
   }
 }

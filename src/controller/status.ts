@@ -14,14 +14,14 @@ dayjs.extend(relativeTime)
 dayjs.extend(customParseFormat)
 
 async function findIndexStateCells (typeScript: CKBComponents.Script) {
-  let indexStateCells = await getCells(typeScript, 'type')
+  const indexStateCells = await getCells(typeScript, 'type')
 
   const statusOfCells = indexStateCells.map(async cell => {
-    let model = IndexStateModel.fromHex(cell.output_data)
-    let block = await getBlockNumber(cell.block_number)
+    const model = IndexStateModel.fromHex(cell.output_data)
+    const block = await getBlockNumber(cell.block_number)
 
-    let created_at = BigInt(block.header.timestamp)
-    let created_at_height = BigInt(block.header.number)
+    const created_at = BigInt(block.header.timestamp)
+    const created_at_height = BigInt(block.header.number)
     return {
       out_point: cell.out_point,
       index: model.index,
@@ -35,14 +35,14 @@ async function findIndexStateCells (typeScript: CKBComponents.Script) {
 }
 
 async function findInfoCells (typeScript: CKBComponents.Script) {
-  let infoCells = await getCells(typeScript, 'type')
+  const infoCells = await getCells(typeScript, 'type')
 
   const statusOfCells = infoCells.map(async cell => {
-    let model = InfoModel.fromHex(cell.output_data)
-    let block = await getBlockNumber(cell.block_number)
+    const model = InfoModel.fromHex(cell.output_data)
+    const block = await getBlockNumber(cell.block_number)
 
-    let created_at = BigInt(block.header.timestamp)
-    let created_at_height = BigInt(block.header.number)
+    const created_at = BigInt(block.header.timestamp)
+    const created_at_height = BigInt(block.header.number)
     return {
       out_point: cell.out_point,
       index: model.index,
@@ -64,7 +64,7 @@ export async function statusController (argv: Arguments<{ type: string }>) {
   console.log(`cell type: ${argv.type}`)
 
   let statusOfIndexStateCells: { out_point: RPC.OutPoint; index: number, total: number, created_at: bigint, created_at_height: bigint }[]
-  let statusOfInfoCells: { out_point: RPC.OutPoint; index: number, value: BigInt, created_at: bigint, created_at_height: bigint }[]
+  let statusOfInfoCells: { out_point: RPC.OutPoint; index: number, value: bigint, created_at: bigint, created_at_height: bigint }[]
   try {
     statusOfIndexStateCells = await findIndexStateCells(indexStateTypeScript)
     statusOfInfoCells = await findInfoCells(infoCellTypeScript)
@@ -82,8 +82,8 @@ export async function statusController (argv: Arguments<{ type: string }>) {
 
   console.log(`\n=== index cells ===`)
   statusOfIndexStateCells.forEach(status => {
-    let index = status.index.toString().padStart(2, ' ')
-    let created_at = dayjs(Number(status.created_at))
+    const index = status.index.toString().padStart(2, ' ')
+    const created_at = dayjs(Number(status.created_at))
 
     console.log(`  index: ${index}, total: ${status.total}, height: ${status.created_at_height}`)
     console.log(`    created_at: ${status.created_at}(${created_at.format('YYYY-MM-DD HH:mm:ss')}), from_now: ${created_at.fromNow()}, tx_hash: ${status.out_point.tx_hash}`)
@@ -91,12 +91,12 @@ export async function statusController (argv: Arguments<{ type: string }>) {
 
   console.log(`\n=== info cells ===`)
   statusOfInfoCells.forEach(status => {
-    let index = status.index.toString().padStart(2, ' ')
-    let created_at = dayjs(Number(status.created_at))
+    const index = status.index.toString().padStart(2, ' ')
+    const created_at = dayjs(Number(status.created_at))
 
     switch (cellType) {
       case CellType.Timestamp:
-        let value = dayjs(status.value.toString(), 'X').format('YYYY-MM-DD HH:mm:ss')
+        const value = dayjs(status.value.toString(), 'X').format('YYYY-MM-DD HH:mm:ss')
         console.log(`  index: ${index}, value: ${status.value}(${value}), block_height: ${status.created_at_height}, block_time: ${status.created_at / BigInt(1000)}(${created_at.format('YYYY-MM-DD HH:mm:ss')})`)
         console.log(`    from_now: ${created_at.fromNow()}, tx_hash: ${status.out_point.tx_hash}`)
         break

@@ -27,14 +27,14 @@ import { InfoModel } from '../model/info_model'
 import { EMPTY_WITNESS_ARGS } from '@nervosnetwork/ckb-sdk-utils/lib/const'
 
 async function findIndexStateCell (typeScript: CKBComponents.Script) {
-  let indexStateCells = await getCells(typeScript, 'type')
+  const indexStateCells = await getCells(typeScript, 'type')
 
   if (indexStateCells.length > 1) {
     // await notifyWithThrottle('index-state-cells-error', TIME_1_M * 60, 'Found more than one IndexStateCells on-chain, please recycle redundant cells as soon as possible.')
   }
 
-  let cell = indexStateCells[0]
-  let model = IndexStateModel.fromHex(cell.output_data)
+  const cell = indexStateCells[0]
+  const model = IndexStateModel.fromHex(cell.output_data)
 
   if (model.total !== SUM_OF_INFO_CELLS) {
     // await notifyWithThrottle('index-state-cells-error', TIME_1_M * 60, 'Total number of InfoCells is different from code and cell data, please update code as soon as possible.')
@@ -48,14 +48,14 @@ async function findIndexStateCell (typeScript: CKBComponents.Script) {
 }
 
 async function findInfoCell (typeScript: CKBComponents.Script, index: number) {
-  let infoCells = await getCells(typeScript, 'type')
+  const infoCells = await getCells(typeScript, 'type')
 
   if (infoCells.length > SUM_OF_INFO_CELLS) {
     // await notifyWithThrottle('info-cells-error', TIME_1_M * 60, `Found more than ${SUM_OF_INFO_CELLS} InfoCells on-chain, please recycle redundant cells as soon as possible.`)
   }
 
   for (const cell of infoCells) {
-    let model = InfoModel.fromHex(cell.output_data)
+    const model = InfoModel.fromHex(cell.output_data)
     if (model.index === index) {
       return {
         out_point: cell.out_point,
@@ -102,7 +102,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         return
       }
 
-      let { out_point: indexOutPoint, output: indexOutput, model: indexModel } = resultOfIndex
+      const { out_point: indexOutPoint, output: indexOutput, model: indexModel } = resultOfIndex
       indexModel.increaseIndex()
 
       let resultOfInfo: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: InfoModel }
@@ -112,9 +112,9 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         logger.error(`Failed to find InfoCells: ${e.toString()}`)
         return
       }
-      let { out_point: infoOutPoint, output: infoOutput, model: infoModel } = resultOfInfo
+      const { out_point: infoOutPoint, output: infoOutput, model: infoModel } = resultOfInfo
       let since = '0x0'
-      let lockScript = config[argv.type].PayersLockScript
+      const lockScript = config[argv.type].PayersLockScript
       switch (argv.type) {
         case 'blocknumber':
           infoModel.infoData = BigInt(data.number)
@@ -230,7 +230,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         logger.info(`Push transaction, tx hash: ${txHash}`)
       } catch (err) {
         try {
-          let data = JSON.parse(err.message)
+          const data = JSON.parse(err.message)
           switch (data.code) {
             case -301:
             case -302:
@@ -307,8 +307,8 @@ class Server extends EventEmitter {
       // Received pong message
       this.logger.debug(`Received pong[${data.id}]`)
 
-      let status = this.heartbeatStatus
-      let item = status.history.find((item) => {
+      const status = this.heartbeatStatus
+      const item = status.history.find((item) => {
         return item.id == data.id
       })
       if (item) {
@@ -329,7 +329,7 @@ class Server extends EventEmitter {
 
       this.logger.debug(`Received new block[${BigInt(result.number)}]`)
 
-      let status = this.eventStatus
+      const status = this.eventStatus
       clearTimeout(status.timer)
 
       this.emit('update', result)
@@ -359,8 +359,8 @@ class Server extends EventEmitter {
   }
 
   protected heartbeat () {
-    let now = Date.now()
-    let status = this.heartbeatStatus
+    const now = Date.now()
+    const status = this.heartbeatStatus
 
     clearTimeout(status.timer)
     status.timer = setTimeout(async () => {
