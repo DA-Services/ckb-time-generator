@@ -11,7 +11,7 @@
     "main": "cross-env NODE_ENV=mainnet NODE_CONFIG_DIR=./config node ./dist/main.js",
     "dev": "cross-env NODE_ENV=testnet NODE_CONFIG_DIR=./config ts-node src/main.ts",
     "lint": "eslint src/**/*.ts --fix",
-    "reload_production": "NODE_ENV=mainnet pm2 reload ecosystem.config.js",
+    "reload_mainnet": "NODE_ENV=mainnet pm2 reload ecosystem.config.js",
     "reload_testnet": "NODE_ENV=testnet pm2 reload ecosystem.config.js"
   },
   "dependencies": {
