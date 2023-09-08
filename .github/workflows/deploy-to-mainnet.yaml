@@ -14,7 +14,7 @@ jobs:
     environment: mainnet
     strategy:
       matrix:
-        target: [SERVER_1]
+        target: [SERVER_1, SERVER_2]
     if: github.event.workflow_run.conclusion == 'success'
     steps:
       - name: Download Artifact
