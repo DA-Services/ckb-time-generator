@@ -5,6 +5,7 @@ CKB_WS_URL: 'ws://127.0.0.1:28114'
 LARK_API_KEY: ''
 
 loglevel: 'info'
+env: ''
 
 # Define the servers and its IP address, mainly used for making notification much more readable in lark.
 servers: {}
