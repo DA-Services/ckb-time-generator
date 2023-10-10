@@ -13,7 +13,7 @@ function generateApp (name, entry, args, env) {
     watch: false,
     error_file: `logs/${appName}.stderr.log`,
     out_file: `logs/${appName}.stdout.log`,
-    log_date_format: 'MM-DD HH:mm:ss',
+    // log_date_format: 'MM-DD HH:mm:ss',
     kill_timeout: 10 * 1000, // ms
     listen_timeout: 10 * 1000, // ms
     max_memory_restart: '256M',
@@ -30,8 +30,8 @@ module.exports = {
    * http://pm2.keymetrics.io/docs/usage/application-declaration/
    */
   apps: [
-    generateApp('time', 'dist/main.js', 'update -t timestamp', process.env.NODE_ENV),
-    generateApp('height', 'dist/main.js', 'update -t blocknumber', process.env.NODE_ENV),
+    // generateApp('time', 'dist/main.js', 'update -t timestamp', process.env.NODE_ENV),
+    // generateApp('height', 'dist/main.js', 'update -t blocknumber', process.env.NODE_ENV),
     generateApp('quote', 'dist/main.js', 'update -t quote', process.env.NODE_ENV),
   ]
 }

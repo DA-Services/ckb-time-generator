@@ -1,10 +1,10 @@
 import fetch from 'node-fetch'
-import { networkInterfaces } from 'os'
+import { Logger } from 'winston'
 
 import config from '../config'
 import { CellType, EXCHANGES, LOWEST_CELL_CAPACITY, SinceFlag, TIME_1_M } from '../const'
 import { getCells, rpcFormat } from './rpc'
-import { rootLogger } from '../log'
+import { getCurrentServer } from './env'
 
 export function remove0x (hex: string) {
   if (hex.startsWith('0x')) {
@@ -63,7 +63,7 @@ export function dataToSince (data: bigint, flag: SinceFlag) {
  * get ckb price
  * precision: 1/10000 of 1 cent, 0.000001
  */
-export async function getCkbPrice(): Promise<bigint> {
+export async function getCkbPrice(logger: Logger): Promise<bigint> {
   // Try to get the quote of CKB/USDT from exchanges, break when it is successful at the first time.
   let price = -1;
   for (const exchange of EXCHANGES) {
@@ -73,7 +73,6 @@ export async function getCkbPrice(): Promise<bigint> {
       price = ticker.close
       break
     } catch (err) {
-      const logger = rootLogger.child({ command: 'update', cell_type: 'unknown' })
       logger.error(`Query the quote from ${exchange.name} failed, try the next exchange.`)
     }
   }
@@ -85,14 +84,13 @@ export async function getCkbPrice(): Promise<bigint> {
   return BigInt(Math.floor(price * 100 * 10000))
 }
 
-export async function collectInputs (lockScript: CKBComponents.Script, needCapacity: bigint) {
+export async function collectInputs (logger: Logger, lockScript: CKBComponents.Script, needCapacity: bigint) {
   const liveCells = await getCells(lockScript, 'lock', {output_data_len_range: ['0x0', '0x1']})
 
   const addressTotalCapacity = liveCells.map(cell => BigInt(cell.output.capacity)).reduce((prev, curr) => prev + curr, BigInt(0))
   if (addressTotalCapacity <= BigInt(10_000_000_000)) {
-    const logger = rootLogger.child({ command: 'update', cell_type: 'unknown' })
     logger.error('The THQ service is about to run out of transaction fee.')
-    notifyWithThrottle('collect-inputs-warning', TIME_1_M * 10, 'The THQ service is about to run out of transaction fee.', 'Please recharge as soon as possible.')
+    notifyWithThrottle(logger, 'collect-inputs-warning', TIME_1_M * 10, 'The THQ service is about to run out of transaction fee.', 'Please recharge as soon as possible.')
   }
 
   const inputs = []
@@ -127,7 +125,7 @@ const thresholdSources: { [key: string]: { count: number, startAt: number } } = 
  * @param {string} how_to_fix
  * @returns {Promise<void>}
  */
-export async function notifyWithThreshold(source: string, max_count: number, period: number, msg: string, how_to_fix = '') {
+export async function notifyWithThreshold(logger: Logger, source: string, max_count: number, period: number, msg: string, how_to_fix = '') {
   const now = Date.now()
   if (thresholdSources[source]) {
     let { count, startAt } = thresholdSources[source];
@@ -143,7 +141,7 @@ export async function notifyWithThreshold(source: string, max_count: number, per
     if (count > max_count) {
       // Send notification if it gets out of the max count.
       thresholdSources[source] = null
-      await notifyLark(msg, how_to_fix)
+      await notifyLark(logger, msg, how_to_fix)
     } else {
       // Suppress notification if it still does not reach the max count.
       thresholdSources[source] = { count, startAt }
@@ -157,7 +155,7 @@ export async function notifyWithThreshold(source: string, max_count: number, per
 }
 
 const throttleSources = {};
-export async function notifyWithThrottle(source: string, duration: number, msg: string, how_to_fix = '') {
+export async function notifyWithThrottle(logger: Logger, source: string, duration: number, msg: string, how_to_fix = '') {
   // Limit notify frequency.
   const now = Date.now()
   if (now - throttleSources[source] <= duration) {
@@ -165,10 +163,10 @@ export async function notifyWithThrottle(source: string, duration: number, msg: 
   }
   throttleSources[source] = now
 
-  await notifyLark(msg, how_to_fix)
+  await notifyLark(logger, msg, how_to_fix)
 }
 
-export async function notifyLark(msg: string, how_to_fix = '', should_at = true) {
+export async function notifyLark(logger: Logger, msg: string, how_to_fix = '', should_at = true) {
   try {
     const content: any[] = [
       [{tag: 'text', un_escaped: true, text: `server: ${getCurrentServer()}`}],
@@ -198,41 +196,11 @@ export async function notifyLark(msg: string, how_to_fix = '', should_at = true)
         console.error(`helper: send Lark notify failed, response ${res.status} ${res.statusText}`)
       }
     } else {
-      const logger = rootLogger.child({ command: 'update', cell_type: 'unknown' })
       logger.warn(`msg: ${msg}, how_to_fix: ${how_to_fix}`)
     }
   } catch (e) {
     console.error('helper: send Lark notify failed:', e)
   }
-}
-
-export function getCurrentServer() {
-  const ip = getCurrentIP()
-  const servers = config.servers
-
-  if (servers && servers[ip]) {
-    return servers[ip]
-  } else {
-    ip
-  }
-}
-
-export function getCurrentIP() {
-  const nets = networkInterfaces()
-  let address = 'parse failed';
-
-  for (const name of Object.keys(nets)) {
-    if (name.startsWith('eno') || name.startsWith('eth')) {
-      for (const net of nets[name]) {
-        if (net.family === 'IPv4' && !net.internal) {
-          address = net.address
-          break
-        }
-      }
-    }
-  }
-
-  return address
 }
 
 export function sortLiveCells(cells: IndexerLiveCell[]): IndexerLiveCell[] {

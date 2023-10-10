@@ -21,6 +21,7 @@ interface Config {
   LARK_API_KEY: string,
 
   loglevel: string,
+  env: string,
 
   // Define the servers and its IP address, mainly used for making notification much more readable in lark.
   servers: any,

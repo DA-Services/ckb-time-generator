@@ -1,4 +1,6 @@
 ---
+env: mainnet
+
 CellDeps:
   # index-state-cell-type
   - outPoint: { txHash: '0xe9116d651c371662b6e29e2102422e23f90656b8619df82c48b782ff4db43a37', index: '0x0' }
