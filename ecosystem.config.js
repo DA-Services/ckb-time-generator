@@ -30,8 +30,8 @@ module.exports = {
    * http://pm2.keymetrics.io/docs/usage/application-declaration/
    */
   apps: [
-    // generateApp('time', 'dist/main.js', 'update -t timestamp', process.env.NODE_ENV),
-    // generateApp('height', 'dist/main.js', 'update -t blocknumber', process.env.NODE_ENV),
+    generateApp('time', 'dist/main.js', 'update -t timestamp', process.env.NODE_ENV),
+    generateApp('height', 'dist/main.js', 'update -t blocknumber', process.env.NODE_ENV),
     generateApp('quote', 'dist/main.js', 'update -t quote', process.env.NODE_ENV),
   ]
 }
