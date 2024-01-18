@@ -1,6 +1,11 @@
 ---
 env: testnet
 
+# Transaction fee used for creating and updating cells.
+fee:
+  create: 1000
+  update: 1000
+
 CellDeps:
   # index-state-cell-type
   - outPoint: { txHash: '0x654f8a271dde2d99f548ff5b9369a55c0cfbe19a315efb5dacf34f72d7f3ea64', index: '0x0' }
