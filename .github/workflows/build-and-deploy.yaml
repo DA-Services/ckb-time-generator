@@ -1,0 +1,97 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: sg
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Restore Cache
+        id: cache-node_modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.yaml') }}
+
+      - name: Install dependency
+        run: npm install
+
+      - name: List the state of node modules
+        if: ${{ steps.cache-node_modules.outputs.cache-hit != 'true' }}
+        continue-on-error: true
+        run: npm list
+
+      - name: Build
+        run: npm run build
+
+      - name: Archive file
+        uses: TheDoctor0/zip-release@0.7.1
+        with:
+          filename: thq-${{ github.sha }}.zip
+          exclusions: '/*node_modules/*'
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: thq-${{ github.sha }}.zip
+          path: ./thq-${{ github.sha }}.zip
+
+  deploy-to-testnet:
+    runs-on: sg
+    needs: build
+    if: ${{ github.ref_name == 'develop' }}
+    environment: testnet
+    strategy:
+      matrix:
+        target: [SERVER_1, SERVER_2]
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: thq-${{ github.sha }}.zip
+
+      - name: Unzip artifact
+        run: rm -rf ./dist && unzip -q thq-${{ github.sha }}.zip -d ./dist
+
+      - name: Deploy to server contract
+        run: ls -la ./dist && rsync -a ./dist/ ${{ vars[matrix.target] }}:/mnt/ckb/ckb-time-generator
+
+      - name: Restart pm2 on server contract
+        run: ssh ${{ vars[matrix.target] }} 'source ~/.zshrc && cd /mnt/ckb/ckb-time-generator && npm install --omit=dev && npm run reload_testnet'
+
+  deploy-to-mainnet:
+    runs-on: sg
+    needs: build
+    if: ${{ github.ref_name == 'main' }}
+    environment: mainnet
+    strategy:
+      matrix:
+        target: [SERVER_1, SERVER_2]
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: thq-${{ github.sha }}.zip
+
+      - name: Unzip artifact
+        run: rm -rf ./dist && unzip -q thq-${{ github.sha }}.zip -d ./dist
+
+      - name: Deploy to server contract
+        run: ls -la ./dist && rsync -a ./dist/ ${{ vars[matrix.target] }}:/mnt/ckb/ckb-time-generator
+
+      - name: Restart pm2 on server contract
+        run: ssh ${{ vars[matrix.target] }} 'source ~/.zshrc && cd /mnt/ckb/ckb-time-generator && npm install --omit=dev && npm run reload_mainnet'
+
