@@ -17,6 +17,13 @@ export function toHex(num: number | bigint) {
   return `0x${num.toString(16)}`
 }
 
+export function fromHex(hex: string) {
+  if (hex.startsWith('0x')) {
+    hex = hex.substring(2)
+  }
+  return BigInt(`0x${hex}`)
+}
+
 export function typeToCellType(type: string) {
   switch(type) {
     case 'timestamp':

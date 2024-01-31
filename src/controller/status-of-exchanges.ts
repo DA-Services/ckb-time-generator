@@ -1,8 +1,6 @@
-import { Arguments } from 'yargs'
-
 import { EXCHANGES } from '../const'
 
-export async function statusOfExchangesController (_argv: Arguments<{ type: string }>) {
+export async function statusOfExchangesController () {
   for (const exchange of EXCHANGES) {
     exchange.fetchTicker('CKB/USDT')
       .then(ticker => {
