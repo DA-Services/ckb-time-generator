@@ -62,8 +62,6 @@ async function findInfoCell (logger: Logger, typeScript: CKBComponents.Script, i
   let to_update
   for (const cell of infoCells) {
     const model = InfoModel.fromHex(cell.output_data)
-    console.log(model)
-
     if (model.index === index) {
       to_update = {
         out_point: cell.out_point,
@@ -305,8 +303,8 @@ class Server extends EventEmitter {
   protected logger: Logger
   protected ws: WebSocket
 
-  protected heartbeatStatus: { id: number, checkTipHeight: any, history: any[] }
-  protected tipHeightStatus: { id: number, checkTipHeight: any, history: any[] }
+  protected heartbeatStatus: { id: number, timer: any, history: any[] }
+  protected tipHeightStatus: { id: number, timer: any, history: any[] }
   protected eventStatus: { checkTipHeight_notify: any, checkTipHeight_warn: any, history: any[] }
   protected txStatus: { txHash: string, waitedBlocks: number }
 
@@ -329,8 +327,8 @@ class Server extends EventEmitter {
     ws.on('error', (e) => this.onError(e))
 
     this.ws = ws
-    this.heartbeatStatus = { id: 1, checkTipHeight: null, history: [] }
-    this.tipHeightStatus = { id: 1, checkTipHeight: null, history: [] }
+    this.heartbeatStatus = { id: 1, timer: null, history: [] }
+    this.tipHeightStatus = { id: 1, timer: null, history: [] }
     this.eventStatus = { checkTipHeight_notify: null, checkTipHeight_warn: null, history: [] }
     this.txStatus = { txHash: '', waitedBlocks: 0 }
 
@@ -352,30 +350,6 @@ class Server extends EventEmitter {
       this.logger.error('Parse message failed, skip.')
       return
     }
-
-    const status = this.eventStatus
-    // This error reports only once if no message received, so DO NOT use notifyWithThrottle to report.
-    // The key point here is eventTimeoutLimit, enlarge it is the only way
-    status.checkTipHeight_notify = setTimeout(async () => {
-      await notifyLark(
-        this.logger,
-        `There is no new block for ${config.Notification.newBlockNotifyLimit} seconds.`,
-        `This problem occasionally occurs and can be safely ignored, a formal warning will be triggered afer ${config.Notification.newBlockWarnLimit} seconds.`,
-        false,
-      )
-
-      clearTimeout(status.checkTipHeight_notify)
-    }, config.Notification.newBlockNotifyLimit * 1000)
-    status.checkTipHeight_warn = setTimeout(async () => {
-      await notifyLark(
-        this.logger,
-        `There is no new block for ${config.Notification.newBlockWarnLimit} seconds.`,
-        'Check if CKB node is offline and the get_tip_header interface is reachable.',
-        true,
-      )
-
-      clearTimeout(status.checkTipHeight_warn)
-    }, config.Notification.newBlockWarnLimit * 1000)
 
     if (data.id && data.result?.number) {
       if (data.id.startsWith('heartbeat-')) {
@@ -407,7 +381,31 @@ class Server extends EventEmitter {
 
       this.logger.debug(`Received new block[${BigInt(result.number)}]`)
 
+      const status = this.eventStatus
+      clearTimeout(status.checkTipHeight_notify)
+      clearTimeout(status.checkTipHeight_warn)
+
       this.emit('update', result)
+
+      // This error reports only once if no message received, so DO NOT use notifyWithThrottle to report.
+      // The key point here is eventTimeoutLimit, enlarge it is the only way
+      status.checkTipHeight_notify = setTimeout(async () => {
+        await notifyLark(
+          this.logger,
+          `There is no new block for ${config.Notification.newBlockNotifyLimit} seconds.`,
+          `This problem occasionally occurs and can be safely ignored, a formal warning will be triggered afer ${config.Notification.newBlockWarnLimit} seconds.`,
+          false,
+        )
+
+      }, config.Notification.newBlockNotifyLimit * 1000)
+      status.checkTipHeight_warn = setTimeout(async () => {
+        await notifyLark(
+          this.logger,
+          `There is no new block for ${config.Notification.newBlockWarnLimit} seconds.`,
+          'Check if CKB node is offline and the get_tip_header interface is reachable.',
+          true,
+        )
+      }, config.Notification.newBlockWarnLimit * 1000)
     }
   }
 
@@ -416,7 +414,8 @@ class Server extends EventEmitter {
 
     setTimeout(() => {
       clearTimeout(this.eventStatus.checkTipHeight_notify)
-      clearTimeout(this.heartbeatStatus.checkTipHeight)
+      clearTimeout(this.eventStatus.checkTipHeight_warn)
+      clearTimeout(this.heartbeatStatus.timer)
       this.connect()
     }, TIME_30_S)
   }
@@ -430,8 +429,8 @@ class Server extends EventEmitter {
     const now = Date.now()
     const status = this.heartbeatStatus
 
-    clearTimeout(status.checkTipHeight)
-    status.checkTipHeight = setTimeout(async () => {
+    clearTimeout(status.timer)
+    status.timer = setTimeout(async () => {
       await notifyWithThrottle(this.logger, 'heartbeat', TIME_1_M * 10, 'Connection timeout.', 'Check if CKB node is offline and the get_tip_header interface is reachable.')
       this.ws.terminate()
     }, TIME_30_S)
@@ -469,7 +468,7 @@ class Server extends EventEmitter {
 
     status.id++
 
-    clearTimeout(status.checkTipHeight)
-    status.checkTipHeight = setTimeout(() => this.checkTipHeight(), TIME_5_S * 2)
+    clearTimeout(status.timer)
+    status.timer = setTimeout(() => this.checkTipHeight(), TIME_5_S * 2)
   }
 }
