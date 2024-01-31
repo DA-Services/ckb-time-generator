@@ -6,11 +6,11 @@ import { getCurrentServer } from './utils/env'
 const server = getCurrentServer();
 
 export const rootLogger = createLogger({
-  level: config.loglevel,
+  level: config.Loglevel,
   defaultMeta: {
     server: server,
     pid: process.pid,
-    env: config.env,
+    env: config.Env,
   },
   format: format.combine(
     format.metadata(),

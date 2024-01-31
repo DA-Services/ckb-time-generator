@@ -4,7 +4,7 @@ import { networkInterfaces } from 'os';
 
 export function getCurrentServer (): string {
   const ip = getCurrentIP()
-  const servers = config.servers
+  const servers = config.Servers
 
   if (servers && servers[ip]) {
     return servers[ip]

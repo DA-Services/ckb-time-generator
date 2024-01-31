@@ -1,10 +1,12 @@
 ---
-env: testnet
+CkbOfficialNodeRpc: 'https://testnet.ckb.dev/'
+
+Env: testnet
 
 # Transaction fee used for creating and updating cells.
-fee:
-  create: 1000
-  update: 1000
+Fee:
+  create: 30000
+  update: 30000
 
 CellDeps:
   # index-state-cell-type
@@ -27,21 +29,21 @@ InfoTypeScript:
   hashType: 'type'
   args: '0x'
 
-timestamp:
+Timestamp:
   PayersLockScript:
     codeHash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8'
     hashType: 'type'
     args: '0x6a21bc1b72d1e654f8e2ded400cffa46075494c6'
   PayersPrivateKey: ''
 
-blocknumber:
+Blocknumber:
   PayersLockScript:
     codeHash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8'
     hashType: 'type'
     args: '0xa897829e60ee4e3fb0e4abe65549ec4a5ddafad7'
   PayersPrivateKey: ''
 
-quote:
+Quote:
   PayersLockScript:
     codeHash: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8'
     hashType: 'type'
