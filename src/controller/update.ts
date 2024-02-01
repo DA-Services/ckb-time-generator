@@ -140,28 +140,29 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       let privateKey
       switch (argv.type) {
         case 'blocknumber':
+          lockScript = config.Blocknumber.PayersLockScript
+          privateKey = config.Blocknumber.PayersPrivateKey
+          infoModel.infoData = BigInt(data.number)
+
           // Ensure that the blocknumber continues to increase.
           if (infoModel.infoData <= latestValue) {
             logger.info(`The node has been left behind, skip updating. current(${infoModel.infoData}) <=  latest(${latestValue}) .`, { cell_data: cellData, waited_blocks: waitedBlocks })
             return
           }
 
-          lockScript = config.Blocknumber.PayersLockScript
-          privateKey = config.Blocknumber.PayersPrivateKey
-          infoModel.infoData = BigInt(data.number)
           since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteHeight)
           break
         case 'timestamp':
-          // Ensure that the timestamp continues to increase.
-          if (infoModel.infoData <= latestValue) {
-            logger.info(`The node has been left behind, skip updating. current(${infoModel.infoData}) <=  latest(${latestValue}) .`, { cell_data: cellData, waited_blocks: waitedBlocks })
-            return
-          }
-
           lockScript = config.Timestamp.PayersLockScript
           privateKey = config.Timestamp.PayersPrivateKey
           try {
             infoModel.infoData = await getLatestTimestamp(data.number)
+
+            // Ensure that the timestamp continues to increase.
+            if (infoModel.infoData <= latestValue) {
+              logger.info(`The node has been left behind, skip updating. current(${infoModel.infoData}) <=  latest(${latestValue}) .`, { cell_data: cellData, waited_blocks: waitedBlocks })
+              return
+            }
           } catch (e) {
             await notifyWithThreshold(logger, 'fetch-timestamp-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `${e}`, 'Check if CKB node is offline and its JSON RPC is reachable.')
             return

@@ -1,5 +1,5 @@
 ---
-CkbOfficialNodeRpc: 'https://mainnet.ckb.dev/'
+CkbOfficialNodeRpc: 'http://127.0.0.1:8114'
 
 Env: mainnet
 
