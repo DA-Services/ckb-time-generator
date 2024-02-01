@@ -3,7 +3,7 @@ import fetch from 'node-fetch'
 
 import config from '../config'
 
-export const ckb = new CKB(config.CKB_NODE_RPC)
+export const ckb = new CKB(config.CkbNodeRpc)
 
 /**
  *
@@ -33,7 +33,7 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
   }
 
   const body = JSON.stringify(payload, null, '  ')
-  const res = await fetch(config.CKB_NODE_INDEXER, {
+  const res = await fetch(config.CkbNodeIndexer, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -15,43 +15,50 @@ interface Script {
 }
 
 interface Config {
-  CKB_NODE_RPC: string
-  CKB_NODE_INDEXER: string,
-  CKB_WS_URL: string,
-  LARK_API_KEY: string,
+  CkbNodeRpc: string
+  CkbNodeIndexer: string,
+  CkbOfficialNodeRpc: string,
+  CkbWsUrl: string,
+  LarkApiKey: string,
 
-  loglevel: string,
-  env: string,
+  Loglevel: string,
+  Env: string,
 
   // Define the servers and its IP address, mainly used for making notification much more readable in lark.
-  servers: any,
+  Servers: any,
 
   // Transaction fee used for creating and updating cells.
-  fee: {
+  Fee: {
     create: bigint,
     update: bigint,
+  },
+
+  Notification: {
+    maxTolerableBehindBlock: number,
+    newBlockNotifyLimit: number,
+    newBlockWarnLimit: number,
   },
 
   CellDeps: Dep[],
   IndexStateTypeScript: Script,
   InfoTypeScript: Script,
 
-  timestamp: {
+  Timestamp: {
     PayersLockScript: Script,
     PayersPrivateKey: string,
   },
-  blocknumber: {
+  Blocknumber: {
     PayersLockScript: Script,
     PayersPrivateKey: string,
   },
-  quote: {
+  Quote: {
     PayersLockScript: Script,
     PayersPrivateKey: string,
   }
 }
 
-config.fee.create = BigInt(config.fee.create)
-config.fee.update = BigInt(config.fee.update)
+config.Fee.create = BigInt(config.Fee.create)
+config.Fee.update = BigInt(config.Fee.update)
 
 // console.log('config:', config)
 export default config as Config

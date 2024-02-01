@@ -17,6 +17,13 @@ export function toHex(num: number | bigint) {
   return `0x${num.toString(16)}`
 }
 
+export function fromHex(hex: string) {
+  if (hex.startsWith('0x')) {
+    hex = hex.substring(2)
+  }
+  return BigInt(`0x${hex}`)
+}
+
 export function typeToCellType(type: string) {
   switch(type) {
     case 'timestamp':
@@ -170,13 +177,13 @@ export async function notifyLark(logger: Logger, msg: string, how_to_fix = '', s
   try {
     const content: any[] = [
       [{tag: 'text', un_escaped: true, text: `server: ${getCurrentServer()}`}],
-      [{tag: 'text', un_escaped: true, text: `ckb_ws_url: ${config.CKB_WS_URL}`}],
+      [{tag: 'text', un_escaped: true, text: `ckb_ws_url: ${config.CkbWsUrl}`}],
       [{tag: 'text', un_escaped: true, text: `reason: ${msg}`}],
       [{tag: 'text', un_escaped: true, text: `how to fix: ${how_to_fix}`}],
     ]
     if (process.env.NODE_ENV === 'mainnet' && should_at) {
       content.push([{tag: 'at', user_id: 'all'}])
-      const res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LARK_API_KEY}`, {
+      const res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LarkApiKey}`, {
         method: 'post',
         body: JSON.stringify({
           email: 'xieaolin@gmail.com',

@@ -14,7 +14,7 @@ import {
   notifyWithThrottle,
   typeToCellType,
   toHex,
-  notifyLark, notifyWithThreshold,
+  notifyLark, notifyWithThreshold, fromHex,
 } from '../utils/helper'
 import {
   ckb,
@@ -22,6 +22,7 @@ import {
   getTransaction,
   rpcFormat,
 } from '../utils/rpc'
+import { getTipBlockNumber } from '../utils/official-rpc'
 import { IndexStateModel } from '../model/index_state_model'
 import { InfoModel } from '../model/info_model'
 import { EMPTY_WITNESS_ARGS } from '@nervosnetwork/ckb-sdk-utils/lib/const'
@@ -57,15 +58,23 @@ async function findInfoCell (logger: Logger, typeScript: CKBComponents.Script, i
     logger.warn(`Found more than ${SUM_OF_INFO_CELLS} InfoCells on-chain, please recycle redundant cells as soon as possible.`)
   }
 
+  const latestValue = InfoModel.fromHex(infoCells[infoCells.length - 1].output_data).infoData
+  let to_update
   for (const cell of infoCells) {
     const model = InfoModel.fromHex(cell.output_data)
     if (model.index === index) {
-      return {
+      to_update = {
         out_point: cell.out_point,
         output: cell.output,
         model: model,
       }
+      break
     }
+  }
+
+  return {
+    latestValue,
+    ...to_update
   }
 }
 
@@ -75,12 +84,15 @@ export async function updateController (argv: Arguments<{ type: string }>) {
   const indexStateTypeScript = getTypeScriptOfIndexStateCell(cellType)
   const infoCellTypeScript = getTypeScriptOfInfoCell(cellType)
 
-  const server = new Server(config.CKB_WS_URL, logger)
+  const server = new Server(config.CkbWsUrl, logger)
   server.connect()
 
+  // Global variables
   const maxWaitingBlocks = 5
   let waitedBlocks = 0
   let txHash = ''
+  let cellData = BigInt(0)
+
   // The response of coingecko may fail sometimes, so we add a counter to determine if it is require to notice developer.
   server.on('update', (data: RPC.Header) => {
     (async () => {
@@ -90,10 +102,17 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         const tx = await getTransaction(txHash)
         // tx maybe null
         if (!tx || tx.txStatus.status !== 'committed') {
-          logger.info(`${txHash} is pending, wait for it.`)
+          logger.info(`${txHash} is pending, wait for it.`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
           waitedBlocks++
           return
         }
+      }
+
+      const height = fromHex(data.number)
+      if (server.tipHeight - height > config.Notification.maxTolerableBehindBlock) {
+        logger.warn(`The CKB node is ${server.tipHeight - height} blocks left behind, stop updating cells.`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
+        await notifyWithThrottle(this.logger, 'tip-height', TIME_1_M * 10, 'The CKB node is ${server.tipHeight - height} blocks left behind.', 'Restart the CKB node.')
+        return
       }
 
       // Calculate new outputs_data of IndexStateCell and InfoCell
@@ -108,22 +127,39 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       const { out_point: indexOutPoint, output: indexOutput, model: indexModel } = resultOfIndex
       indexModel.increaseIndex()
 
-      let resultOfInfo: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: InfoModel }
+      let resultOfInfo: { out_point: RPC.OutPoint, output: RPC.CellOutput, model: InfoModel, latestValue: bigint }
       try {
         resultOfInfo = await findInfoCell(logger, infoCellTypeScript, indexModel.index)
       } catch (e) {
         logger.error(`Failed to find InfoCells: ${e.toString()}`)
         return
       }
-      const { out_point: infoOutPoint, output: infoOutput, model: infoModel } = resultOfInfo
+      const { out_point: infoOutPoint, output: infoOutput, model: infoModel, latestValue } = resultOfInfo
       let since = '0x0'
-      const lockScript = config[argv.type].PayersLockScript
+      let lockScript
+      let privateKey
       switch (argv.type) {
         case 'blocknumber':
+          // Ensure that the blocknumber continues to increase.
+          if (infoModel.infoData <= latestValue) {
+            logger.info(`The node has been left behind, skip updating. current(${infoModel.infoData}) <=  latest(${latestValue}) .`, { cell_data: cellData, waited_blocks: waitedBlocks })
+            return
+          }
+
+          lockScript = config.Blocknumber.PayersLockScript
+          privateKey = config.Blocknumber.PayersPrivateKey
           infoModel.infoData = BigInt(data.number)
           since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteHeight)
           break
         case 'timestamp':
+          // Ensure that the timestamp continues to increase.
+          if (infoModel.infoData <= latestValue) {
+            logger.info(`The node has been left behind, skip updating. current(${infoModel.infoData}) <=  latest(${latestValue}) .`, { cell_data: cellData, waited_blocks: waitedBlocks })
+            return
+          }
+
+          lockScript = config.Timestamp.PayersLockScript
+          privateKey = config.Timestamp.PayersPrivateKey
           try {
             infoModel.infoData = await getLatestTimestamp(data.number)
           } catch (e) {
@@ -133,6 +169,8 @@ export async function updateController (argv: Arguments<{ type: string }>) {
           since = dataToSince(infoModel.infoData, SinceFlag.AbsoluteTimestamp)
           break
         case 'quote':
+          lockScript = config.Quote.PayersLockScript
+          privateKey = config.Quote.PayersPrivateKey
           try {
             infoModel.infoData = await getCkbPrice(logger)
           } catch (e) {
@@ -142,6 +180,9 @@ export async function updateController (argv: Arguments<{ type: string }>) {
           }
           break
       }
+
+      // Save the cell data for logging
+      cellData = infoModel.infoData
 
       // Build inputs of transaction
       let inputs = []
@@ -156,14 +197,14 @@ export async function updateController (argv: Arguments<{ type: string }>) {
 
       let collected
       try {
-        collected = await collectInputs(logger, lockScript, config.fee.update)
+        collected = await collectInputs(logger, lockScript, config.Fee.update)
         inputs = inputs.concat(collected.inputs)
       } catch (e) {
         if (e.toString().includes('capacity')) {
-          logger.error(`Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`)
-          await notifyWithThreshold(logger, 'collect-inputs-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `Collect inputs failed, expected ${config.fee.update} shannon but only ${collected.capacity} shannon found.`, 'Check if the balance of deploy address is enough.')
+          logger.error(`Collect inputs failed, expected ${config.Fee.update} shannon but only ${collected.capacity} shannon found.`, { cell_data: cellData, waited_blocks: waitedBlocks })
+          await notifyWithThreshold(logger, 'collect-inputs-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `Collect inputs failed, expected ${config.Fee.update} shannon but only ${collected.capacity} shannon found.`, 'Check if the balance of deploy address is enough.')
         } else {
-          logger.error(`Collect inputs error.(${e.toString()})`)
+          logger.error(`Collect inputs error.(${e.toString()})`, { cell_data: cellData, waited_blocks: waitedBlocks })
           await notifyWithThreshold(logger, 'collect-inputs-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `Collect inputs error.(${e.toString()})`, 'Check if ckb-indexer is offline and the get_cells interface is reachable.')
         }
         return
@@ -175,10 +216,10 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         rpcFormat().toOutput(infoOutput),
       ]
 
-      if (collected.capacity > config.fee.update) {
+      if (collected.capacity > config.Fee.update) {
         // Change redundant capacity
         outputs.push({
-          capacity: toHex(collected.capacity - config.fee.update),
+          capacity: toHex(collected.capacity - config.Fee.update),
           lock: lockScript,
           type: null,
         })
@@ -212,16 +253,16 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       try {
         await ckb.loadDeps()
       } catch (e) {
-        logger.error(`Load cell_deps from node RPC API failed.(${e})`)
+        logger.error(`Load cell_deps from node RPC API failed.(${e})`, { cell_data: cellData, waited_blocks: waitedBlocks })
         await notifyWithThreshold(logger, 'load-cell-deps-error', THEORETIC_BLOCK_1_M * 5, TIME_1_M * 5, `Load cell_deps from node RPC API failed.(${e})`, 'Check if CKB node is offline and its JSON RPC is reachable.')
         return
       }
 
       let signedRawTx
       try {
-        signedRawTx = ckb.signTransaction(config[argv.type].PayersPrivateKey)(rawTx)
+        signedRawTx = ckb.signTransaction(privateKey)(rawTx)
       } catch (e) {
-        logger.error(`Sign transaction failed.(${e})`)
+        logger.error(`Sign transaction failed.(${e})`, { cell_data: cellData, waited_blocks: waitedBlocks })
         await notifyWithThrottle(logger, 'sign-transaction-error', TIME_1_M * 10, `Sign transaction failed.(${e})`, 'Try to find out what the error message means it mostly because the private key is not match.')
         return
       }
@@ -230,7 +271,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         txHash = await ckb.rpc.sendTransaction(signedRawTx, 'passthrough')
         waitedBlocks = 0
 
-        logger.info(`Push transaction, tx hash: ${txHash}`)
+        logger.info(`Push transaction, tx hash: ${txHash}`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
       } catch (err) {
         try {
           const data = JSON.parse(err.message)
@@ -239,14 +280,14 @@ export async function updateController (argv: Arguments<{ type: string }>) {
             case -302:
             case -1107:
               // These error are caused by cell occupation, could retry automatically.
-              logger.warn(`Update cell failed.(${data.code}: ${data.message})`)
+              logger.warn(`Update cell failed.(${data.code}: ${data.message})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
               return
             default:
-              logger.error(`Update cell failed.(${data.code}: ${data.message})`)
+              logger.error(`Update cell failed.(${data.code}: ${data.message})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
               await notifyWithThrottle(logger, 'update-error', TIME_1_M * 10, `Update cell failed.(${data.message})`, 'Try to find out what the error message means.')
           }
         } catch (e) {
-          logger.error(`Update cell occurred unknown error.(${err})`)
+          logger.error(`Update cell occurred unknown error.(${err})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
           await notifyWithThrottle(logger, 'update-error', TIME_1_M * 10, `Update cell occurred unknown error.(${err})`, 'Try to find out what the error message means.')
 
         }
@@ -263,11 +304,11 @@ class Server extends EventEmitter {
   protected ws: WebSocket
 
   protected heartbeatStatus: { id: number, timer: any, history: any[] }
-  protected eventStatus: { timer_notify: any, timer_warn: any, history: any[] }
+  protected tipHeightStatus: { id: number, timer: any, history: any[] }
+  protected eventStatus: { checkTipHeight_notify: any, checkTipHeight_warn: any, history: any[] }
   protected txStatus: { txHash: string, waitedBlocks: number }
 
-  protected newBlockNotifyLimit = TIME_1_M * 3
-  protected newBlockWarnLimit = TIME_1_M * 9
+  public tipHeight = BigInt(0)
 
   constructor (url: string, logger: Logger) {
     super()
@@ -287,8 +328,11 @@ class Server extends EventEmitter {
 
     this.ws = ws
     this.heartbeatStatus = { id: 1, timer: null, history: [] }
-    this.eventStatus = { timer_notify: null, timer_warn: null, history: [] }
+    this.tipHeightStatus = { id: 1, timer: null, history: [] }
+    this.eventStatus = { checkTipHeight_notify: null, checkTipHeight_warn: null, history: [] }
     this.txStatus = { txHash: '', waitedBlocks: 0 }
+
+    this.checkTipHeight()
   }
 
   protected async onOpen () {
@@ -308,19 +352,23 @@ class Server extends EventEmitter {
     }
 
     if (data.id && data.result?.number) {
-      // Received pong message
-      this.logger.debug(`Received pong[${data.id}]`)
+      if (data.id.startsWith('heartbeat-')) {
+        // Received pong message
+        this.logger.debug(`Received pong[${data.id}]`)
 
-      const status = this.heartbeatStatus
-      const item = status.history.find((item) => {
-        return item.id == data.id
-      })
-      if (item) {
-        item.pongAt = Date.now()
+        const status = this.heartbeatStatus
+        const item = status.history.find((item) => {
+          return item.id == data.id
+        })
+        if (item) {
+          item.pongAt = Date.now()
+        }
+
+        // Send heartbeat every n seconds
+        setTimeout(() => this.heartbeat(), TIME_5_S)
+      } else {
+        this.logger.error(`Unknown message, skip. id: ${data.id}`)
       }
-
-      // Send heartbeat every n seconds
-      setTimeout(() => this.heartbeat(), TIME_5_S)
     } else if (data.method === 'subscribe' && data.params?.result) {
       // Received new block message
       let result
@@ -334,30 +382,30 @@ class Server extends EventEmitter {
       this.logger.debug(`Received new block[${BigInt(result.number)}]`)
 
       const status = this.eventStatus
-      clearTimeout(status.timer_notify)
-      clearTimeout(status.timer_warn)
+      clearTimeout(status.checkTipHeight_notify)
+      clearTimeout(status.checkTipHeight_warn)
 
       this.emit('update', result)
 
       // This error reports only once if no message received, so DO NOT use notifyWithThrottle to report.
       // The key point here is eventTimeoutLimit, enlarge it is the only way
-      status.timer_notify = setTimeout(async () => {
+      status.checkTipHeight_notify = setTimeout(async () => {
         await notifyLark(
           this.logger,
-          `There is no new block for ${this.newBlockNotifyLimit / 1000} seconds.`,
-          `This problem occasionally occurs and can be safely ignored, a formal warning will be triggered afer ${this.newBlockWarnLimit / 1000} seconds.`,
+          `There is no new block for ${config.Notification.newBlockNotifyLimit} seconds.`,
+          `This problem occasionally occurs and can be safely ignored, a formal warning will be triggered afer ${config.Notification.newBlockWarnLimit} seconds.`,
           false,
         )
-      }, this.newBlockNotifyLimit)
 
-      status.timer_warn = setTimeout(async () => {
+      }, config.Notification.newBlockNotifyLimit * 1000)
+      status.checkTipHeight_warn = setTimeout(async () => {
         await notifyLark(
           this.logger,
-          `There is no new block for ${this.newBlockWarnLimit / 1000} seconds.`,
+          `There is no new block for ${config.Notification.newBlockWarnLimit} seconds.`,
           'Check if CKB node is offline and the get_tip_header interface is reachable.',
           true,
         )
-      }, this.newBlockWarnLimit)
+      }, config.Notification.newBlockWarnLimit * 1000)
     }
   }
 
@@ -365,7 +413,8 @@ class Server extends EventEmitter {
     this.logger.warn(`Connection closed, will retry connecting later.(${code}: ${reason})`)
 
     setTimeout(() => {
-      clearTimeout(this.eventStatus.timer_notify)
+      clearTimeout(this.eventStatus.checkTipHeight_notify)
+      clearTimeout(this.eventStatus.checkTipHeight_warn)
       clearTimeout(this.heartbeatStatus.timer)
       this.connect()
     }, TIME_30_S)
@@ -387,7 +436,7 @@ class Server extends EventEmitter {
     }, TIME_30_S)
 
     // ⚠️ Different method may has performance issue, ensure testing on cloud
-    this.ws.send(`{ "id": ${status.id}, "jsonrpc": "2.0", "method": "get_tip_header", "params": [] }`)
+    this.ws.send(`{ "id": "heartbeat-${status.id}", "jsonrpc": "2.0", "method": "get_tip_header", "params": [] }`)
 
     this.logger.debug(`Send ping[${status.id}]`)
 
@@ -396,5 +445,30 @@ class Server extends EventEmitter {
     }
     status.history.push({ id: status.id, pingAt: now, pongAt: 0 })
     status.id++
+  }
+
+  protected async checkTipHeight () {
+    const now = Date.now()
+    const status = this.tipHeightStatus
+
+    this.logger.debug(`Try get_tip_block_number from ${config.CkbOfficialNodeRpc}.`)
+
+    let tipHeight = BigInt(0)
+    try {
+      tipHeight = await getTipBlockNumber()
+      this.tipHeight = tipHeight
+
+      if (status.history.length >= 10) {
+        status.history.shift()
+      }
+      status.history.push({ id: status.id, tip_height: tipHeight, at: now })
+    } catch (e) {
+      await notifyWithThrottle(this.logger, 'get-tip-height-error', TIME_1_M * 10, `Get tip height failed.(${e})`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
+    }
+
+    status.id++
+
+    clearTimeout(status.timer)
+    status.timer = setTimeout(() => this.checkTipHeight(), TIME_5_S * 2)
   }
 }
