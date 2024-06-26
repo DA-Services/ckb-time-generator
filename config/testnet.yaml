@@ -3,11 +3,6 @@ CkbOfficialNodeRpc: 'http://127.0.0.1:8224'
 
 Env: testnet
 
-# Transaction fee used for creating and updating cells.
-Fee:
-  create: 30000
-  update: 30000
-
 CellDeps:
   # index-state-cell-type
   - outPoint: { txHash: '0x654f8a271dde2d99f548ff5b9369a55c0cfbe19a315efb5dacf34f72d7f3ea64', index: '0x0' }
