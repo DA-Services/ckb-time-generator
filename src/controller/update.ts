@@ -277,11 +277,16 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         try {
           const data = JSON.parse(err.message)
           switch (data.code) {
-            case -301:
             case -302:
             case -1107:
               // These error are caused by cell occupation, could retry automatically.
               logger.warn(`Update cell failed.(${data.code}: ${data.message})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
+              return
+            case -301:
+              // Suppress the occupation error
+              return
+            case -1111:
+              // Suppress the RBF rejection error
               return
             default:
               logger.error(`Update cell failed.(${data.code}: ${data.message})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
