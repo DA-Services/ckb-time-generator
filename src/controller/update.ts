@@ -428,7 +428,8 @@ class Server extends EventEmitter {
 
   protected async onError (err: Error) {
     this.logger.error(`Connection error occurred.(${err})`)
-    await notifyWithThrottle(this.logger, 'ws-error', TIME_1_M * 10, `Connection error occurred.(${err})`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
+    // No longer need to notify, because the service will restart automatically when no new block is received for a while.
+    // await notifyWithThrottle(this.logger, 'ws-error', TIME_1_M * 10, `Connection error occurred.(${err})`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
   }
 
   protected heartbeat () {

@@ -22,7 +22,7 @@ Notification:
   # Unit: second
   newBlockNotifyLimit: 120
   # Unit: second
-  newBlockWarnLimit: 240
+  newBlockWarnLimit: 360
 
 CellDeps:
 # The type script used by IndexStateCell.

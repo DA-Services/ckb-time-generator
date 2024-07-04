@@ -47,3 +47,17 @@ npm run dev -- {sub commands}
 ```
 
 The `dev` script will load `config/local-testnet.ts` and `config/testnet.ts` by default.
+
+
+## CKB Node Restart Script
+
+Because of unstable network, sometimes the CKB node may disconnect from peers and stop syncing blocks. To solve this problem, the script `scripts/ckb-node-monit.js` can restart the CKB node automatically:
+
+```bash
+pm2 start --cron-restart="* * * * *" \
+./scripts/ckb-node-monit.js -- \
+--log /path_to_ckb_node_log_dir/run.log \
+--data ./ckb-node-status.json
+```
+
+> The script needs permission to execute `systemctl restart ckb-node` command, so it is required to run it with root permission.
