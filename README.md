@@ -19,11 +19,11 @@ The generator of [ckb-time-scripts](https://github.com/DeAccountSystems/ckb-time
 
 > WARNING! Pnpm may not properly execute the following commands.
 
-- `npm run main -- status -t timestamp` check status of TimeCells and their IndexStateCell on-chain.
-- `npm run main -- fix -t timestamp` recycle redundant TimeCells and their IndexStateCell on-chain.
-- `npm run main -- update -t timestamp` keep updating TimeCells and their IndexStateCell on-chain.
+- `npm run mainnet -- status -t timestamp` check status of TimeCells and their IndexStateCell on-chain.
+- `npm run mainnet -- fix -t timestamp` recycle redundant TimeCells and their IndexStateCell on-chain.
+- `npm run mainnet -- update -t timestamp` keep updating TimeCells and their IndexStateCell on-chain.
 
-Same as `timestamp` other option of `-t` can be `blocknumber` and `quote`, for more help information, please try `npm run main -- --help` .
+The `mainnet` argument can also be changed to `testnet`. Similarly, besides using `timestamp`, the `-t` option can also be set as either `height` or `quote`. For further assistance, please refer to the help information by running `npm run main -- --help`.
 
 
 ## Development

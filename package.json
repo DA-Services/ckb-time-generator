@@ -8,7 +8,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "main": "cross-env NODE_ENV=mainnet NODE_CONFIG_DIR=./config node ./dist/main.js",
+    "mainnet": "NODE_ENV=mainnet NODE_CONFIG_DIR=./config node ./dist/main.js",
+    "testnet": "NODE_ENV=testnet NODE_CONFIG_DIR=./config node ./dist/main.js",
     "dev": "cross-env NODE_ENV=testnet NODE_CONFIG_DIR=./config ts-node src/main.ts",
     "lint": "eslint src/**/*.ts --fix",
     "reload_mainnet": "NODE_ENV=mainnet pm2 reload ecosystem.config.js",
