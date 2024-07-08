@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer'
 
-import { remove0x } from '../utils/helper'
+import { remove0x } from '../utils/helper.js'
 
 const IndexStateDataLength = 1 + 1;
 

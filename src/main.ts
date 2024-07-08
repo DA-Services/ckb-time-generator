@@ -3,14 +3,14 @@
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import { statusController } from './controller/status'
-import { fixController } from './controller/fix'
-import { createController } from './controller/create'
-import { updateController } from './controller/update'
-import { statusOfExchangesController } from './controller/status-of-exchanges'
-import { testLark } from './controller/test-lark'
+import { statusController } from './controller/status.js'
+import { fixController } from './controller/fix.js'
+import { createController } from './controller/create.js'
+import { updateController } from './controller/update.js'
+import { statusOfExchangesController } from './controller/status-of-exchanges.js'
+import { testLark } from './controller/test-lark.js'
 
-// import config from './config'
+// import config from './config.js'
 // console.log('config:', config)
 // process.exit(1)
 

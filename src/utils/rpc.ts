@@ -1,9 +1,9 @@
-import CKB from '@nervosnetwork/ckb-sdk-core'
+import ckbCore from '@nervosnetwork/ckb-sdk-core'
 import fetch from 'node-fetch'
 
-import config from '../config'
+import config from '../config.js'
 
-export const ckb = new CKB(config.CkbNodeRpc)
+export const ckb = new ckbCore.default(config.CkbNodeRpc)
 
 /**
  *
@@ -40,7 +40,7 @@ export async function getCells (script: CKBComponents.Script, type, filter?): Pr
     },
     body,
   })
-  const data = await res.json()
+  const data: any = await res.json()
 
   if (data.error) {
     throw new Error(`get_cells response error.(code: ${data.error.code}, message: ${data.error.message})`)

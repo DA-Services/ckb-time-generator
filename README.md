@@ -43,10 +43,12 @@ quote:
 Then, you will be able to run commands in testnet environment like below:
 
 ```bash
-npm run dev -- {sub commands}
+npm run dev
+
+npm run testnet -- {commands}
 ```
 
-The `dev` script will load `config/local-testnet.ts` and `config/testnet.ts` by default.
+The `testnet` script will load `config/local-testnet.yaml` and `config/testnet.yaml` by default.
 
 
 ## CKB Node Restart Script
