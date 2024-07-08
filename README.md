@@ -53,11 +53,11 @@ The `testnet` script will load `config/local-testnet.yaml` and `config/testnet.y
 
 ## CKB Node Restart Script
 
-Because of unstable network, sometimes the CKB node may disconnect from peers and stop syncing blocks. To solve this problem, the script `scripts/ckb-node-monit.js` can restart the CKB node automatically:
+Because of unstable network, sometimes the CKB node may disconnect from peers and stop syncing blocks. To solve this problem, the script `scripts/ckb-node-monit.mjs` can restart the CKB node automatically:
 
 ```bash
 pm2 start --cron-restart="* * * * *" \
-./scripts/ckb-node-monit.js -- \
+./scripts/ckb-node-monit.mjs -- \
 --log /path_to_ckb_node_log_dir/run.log \
 --data ./ckb-node-status.json
 ```

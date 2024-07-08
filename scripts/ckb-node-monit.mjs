@@ -1,13 +1,13 @@
 // Start command:
 // pm2 start --cron-restart="* * * * *" \
-// ./ckb-node-monit.js -- \
+// ./ckb-node-monit.mjs -- \
 // --log /path_to_ckb_node_log_dir/run.log \
 // --data ./ckb-node-status.json
 
 
-const fs = require('fs');
-const readline = require('readline');
-const { spawn } = require('child_process');
+import fs from 'fs'
+import readline from 'readline'
+import { spawn } from 'child_process'
 
 const newBlockTimeout = 180 * 1000; // 3 minutes
 const restartTimeout = 300 * 1000; // 5 minutes
