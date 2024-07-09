@@ -58,6 +58,7 @@ Because of unstable network, sometimes the CKB node may disconnect from peers an
 ```bash
 pm2 start --cron-restart="* * * * *" \
 ./scripts/ckb-node-monit.mjs -- \
+--block-timeout 180 \
 --log /path_to_ckb_node_log_dir/run.log \
 --data ./ckb-node-status.json
 ```
