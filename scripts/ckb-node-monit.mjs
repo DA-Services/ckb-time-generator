@@ -24,7 +24,7 @@ const DEFAULT_RESTART_TIMEOUT = 300; // 5 minutes
   if (latestHeight === previousStatus.latestHeight) {
     // If no new block for 3 minutes and the node has been restarted for 5 minutes, try restart it again.
     if (lastHeightPassed > blockTimeout && lastRestartPassed > restartTimeout) {
-      log('warning', `The CKB node has stayed at height ${latestHeight} for more than ${Math.round(lastHeightPassed / 60) / 1000} minutes, restarting it ...`);
+      log('warning', `The CKB node has stayed at height ${latestHeight} for more than ${lastHeightPassed / 1000} seconds, restarting it ...`);
 
       restartCKBNode();
 
@@ -83,8 +83,8 @@ function parseArgs () {
   const logFilePath = args[logFilePathIndex + 1];
   const dataFilePath = dataFilePathIndex !== -1 && dataFilePathIndex + 1 < args.length ? args[dataFilePathIndex + 1] : 'ckb-node-status.json';
 
-  let blockTimeout = DEFAULT_BLOCK_TIMEOUT * 1000;
-  let restartTimeout = DEFAULT_RESTART_TIMEOUT * 1000;
+  let blockTimeout = DEFAULT_BLOCK_TIMEOUT;
+  let restartTimeout = DEFAULT_RESTART_TIMEOUT;
 
   if (blockTimeoutIndex !== -1 && blockTimeoutIndex + 1 < args.length) {
     blockTimeout = parseInt(args[blockTimeoutIndex + 1], 10);
@@ -102,7 +102,7 @@ function parseArgs () {
     }
   }
 
-  return { logFilePath, dataFilePath, blockTimeout, restartTimeout };
+  return { logFilePath, dataFilePath, blockTimeout: blockTimeout * 1000, restartTimeout: restartTimeout * 1000 };
 }
 
 function readStatusFromFile (dataFilePath) {
