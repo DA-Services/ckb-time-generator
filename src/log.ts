@@ -1,7 +1,7 @@
 import { createLogger, format, transports } from 'winston'
 
-import config from './config'
-import { getCurrentServer } from './utils/env'
+import config from './config.js'
+import { getCurrentServer } from './utils/env.js'
 
 const server = getCurrentServer();
 

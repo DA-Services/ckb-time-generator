@@ -3,9 +3,9 @@ import WebSocket from 'ws'
 import { Logger } from 'winston'
 import EventEmitter from 'events'
 
-import config from '../config'
-import { SinceFlag, SUM_OF_INFO_CELLS, TIME_1_M, TIME_30_S, TIME_5_S, THEORETIC_BLOCK_1_M } from '../const'
-import { rootLogger } from '../log'
+import config from '../config.js'
+import { SinceFlag, SUM_OF_INFO_CELLS, TIME_1_M, TIME_30_S, TIME_5_S, THEORETIC_BLOCK_1_M } from '../const.js'
+import { rootLogger } from '../log.js'
 import {
   collectInputs,
   dataToSince, getCkbPrice,
@@ -15,17 +15,17 @@ import {
   typeToCellType,
   toHex,
   notifyLark, notifyWithThreshold, fromHex,
-} from '../utils/helper'
+} from '../utils/helper.js'
 import {
   ckb,
   getCells, getLatestTimestamp,
   getTransaction,
   rpcFormat,
-} from '../utils/rpc'
-import { getTipBlockNumber } from '../utils/official-rpc'
-import { IndexStateModel } from '../model/index_state_model'
-import { InfoModel } from '../model/info_model'
-import { EMPTY_WITNESS_ARGS } from '@nervosnetwork/ckb-sdk-utils/lib/const'
+} from '../utils/rpc.js'
+import { getTipBlockNumber } from '../utils/official-rpc.js'
+import { IndexStateModel } from '../model/index_state_model.js'
+import { InfoModel } from '../model/info_model.js'
+import { EMPTY_WITNESS_ARGS } from '@nervosnetwork/ckb-sdk-utils/lib/const.js'
 
 async function findIndexStateCell (logger: Logger, typeScript: CKBComponents.Script) {
   const indexStateCells = await getCells(typeScript, 'type')

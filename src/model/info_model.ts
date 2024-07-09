@@ -1,5 +1,5 @@
 import { Buffer } from 'buffer'
-import { remove0x } from '../utils/helper'
+import { remove0x } from '../utils/helper.js'
 
 // Info data: index(u8) | type(u8) | timestamp(u64) BigEndian
 const InfoDataLength = 1 + 1 + 8;

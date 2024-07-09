@@ -19,11 +19,11 @@ The generator of [ckb-time-scripts](https://github.com/DeAccountSystems/ckb-time
 
 > WARNING! Pnpm may not properly execute the following commands.
 
-- `npm run main -- status -t timestamp` check status of TimeCells and their IndexStateCell on-chain.
-- `npm run main -- fix -t timestamp` recycle redundant TimeCells and their IndexStateCell on-chain.
-- `npm run main -- update -t timestamp` keep updating TimeCells and their IndexStateCell on-chain.
+- `npm run mainnet -- status -t timestamp` check status of TimeCells and their IndexStateCell on-chain.
+- `npm run mainnet -- fix -t timestamp` recycle redundant TimeCells and their IndexStateCell on-chain.
+- `npm run mainnet -- update -t timestamp` keep updating TimeCells and their IndexStateCell on-chain.
 
-Same as `timestamp` other option of `-t` can be `blocknumber` and `quote`, for more help information, please try `npm run main -- --help` .
+The `mainnet` argument can also be changed to `testnet`. Similarly, besides using `timestamp`, the `-t` option can also be set as either `height` or `quote`. For further assistance, please refer to the help information by running `npm run main -- --help`.
 
 
 ## Development
@@ -43,19 +43,22 @@ quote:
 Then, you will be able to run commands in testnet environment like below:
 
 ```bash
-npm run dev -- {sub commands}
+npm run dev
+
+npm run testnet -- {commands}
 ```
 
-The `dev` script will load `config/local-testnet.ts` and `config/testnet.ts` by default.
+The `testnet` script will load `config/local-testnet.yaml` and `config/testnet.yaml` by default.
 
 
 ## CKB Node Restart Script
 
-Because of unstable network, sometimes the CKB node may disconnect from peers and stop syncing blocks. To solve this problem, the script `scripts/ckb-node-monit.js` can restart the CKB node automatically:
+Because of unstable network, sometimes the CKB node may disconnect from peers and stop syncing blocks. To solve this problem, the script `scripts/ckb-node-monit.mjs` can restart the CKB node automatically:
 
 ```bash
 pm2 start --cron-restart="* * * * *" \
-./scripts/ckb-node-monit.js -- \
+./scripts/ckb-node-monit.mjs -- \
+--block-timeout 180 \
 --log /path_to_ckb_node_log_dir/run.log \
 --data ./ckb-node-status.json
 ```

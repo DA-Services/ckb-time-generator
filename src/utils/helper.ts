@@ -1,10 +1,10 @@
 import fetch from 'node-fetch'
 import { Logger } from 'winston'
 
-import config from '../config'
-import { CellType, EXCHANGES, LOWEST_CELL_CAPACITY, SinceFlag, TIME_1_M } from '../const'
-import { getCells, rpcFormat } from './rpc'
-import { getCurrentServer } from './env'
+import config from '../config.js'
+import { CellType, EXCHANGES, LOWEST_CELL_CAPACITY, SinceFlag, TIME_1_M } from '../const.js'
+import { getCells, rpcFormat } from './rpc.js'
+import { getCurrentServer } from './env.js'
 
 export function remove0x (hex: string) {
   if (hex.startsWith('0x')) {

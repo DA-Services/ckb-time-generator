@@ -1,4 +1,4 @@
-import { EXCHANGES } from '../const'
+import { EXCHANGES } from '../const.js'
 
 export async function statusOfExchangesController () {
   for (const exchange of EXCHANGES) {

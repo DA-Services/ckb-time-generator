@@ -1,18 +1,18 @@
 // import { inspect } from 'util'
 import { Arguments } from 'yargs'
 
-import config from '../config'
-import { SUM_OF_INFO_CELLS } from '../const'
-import { ckb, getCells } from '../utils/rpc'
+import config from '../config.js'
+import { SUM_OF_INFO_CELLS } from '../const.js'
+import { ckb, getCells } from '../utils/rpc.js'
 import {
   getTypeScriptOfIndexStateCell,
   getTypeScriptOfInfoCell,
   sortLiveCells,
   typeToCellType,
   toHex
-} from '../utils/helper'
-import { InfoModel } from '../model/info_model'
-import { EMPTY_WITNESS_ARGS } from '@nervosnetwork/ckb-sdk-utils/lib/const'
+} from '../utils/helper.js'
+import { InfoModel } from '../model/info_model.js'
+import { EMPTY_WITNESS_ARGS } from '@nervosnetwork/ckb-sdk-utils/lib/const.js'
 
 async function findRedundantIndexStateCells (typeScript: CKBComponents.Script) {
   let indexStateCells = await getCells(typeScript, 'type')

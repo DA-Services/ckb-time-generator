@@ -1,15 +1,14 @@
 import { Arguments } from 'yargs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
+import relativeTime from 'dayjs/plugin/relativeTime.js'
+import customParseFormat from 'dayjs/plugin/customParseFormat.js'
 
-import { getTypeScriptOfIndexStateCell, getTypeScriptOfInfoCell, typeToCellType } from '../utils/helper'
-import { getBlockNumber, getCells } from '../utils/rpc'
-import { InfoModel } from '../model/info_model'
-import { IndexStateModel } from '../model/index_state_model'
-import { CellType } from '../const'
+import { getTypeScriptOfIndexStateCell, getTypeScriptOfInfoCell, typeToCellType } from '../utils/helper.js'
+import { getBlockNumber, getCells } from '../utils/rpc.js'
+import { InfoModel } from '../model/info_model.js'
+import { IndexStateModel } from '../model/index_state_model.js'
+import { CellType } from '../const.js'
 
-const dayjs = require('dayjs')
-
+import dayjs from 'dayjs'
 dayjs.extend(relativeTime)
 dayjs.extend(customParseFormat)
 
@@ -95,11 +94,12 @@ export async function statusController (argv: Arguments<{ type: string }>) {
     const created_at = dayjs(Number(status.created_at))
 
     switch (cellType) {
-      case CellType.Timestamp:
+      case CellType.Timestamp: {
         const value = dayjs(status.value.toString(), 'X').format('YYYY-MM-DD HH:mm:ss')
         console.log(`  index: ${index}, value: ${status.value}(${value}), block_height: ${status.created_at_height}, block_time: ${status.created_at / BigInt(1000)}(${created_at.format('YYYY-MM-DD HH:mm:ss')})`)
         console.log(`    from_now: ${created_at.fromNow()}, tx_hash: ${status.out_point.tx_hash}`)
         break
+      }
       default:
         console.log(`  index: ${index}, value: ${status.value}, block_height: ${status.created_at_height}, block_time: ${status.created_at / BigInt(1000)}(${created_at.format('YYYY-MM-DD HH:mm:ss')})`)
         console.log(`    from_now: ${created_at.fromNow()}, tx_hash: ${status.out_point.tx_hash}`)
