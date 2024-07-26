@@ -111,7 +111,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
       const height = fromHex(data.number)
       if (server.tipHeight - height > config.Notification.maxTolerableBehindBlock) {
         logger.warn(`The CKB node is ${server.tipHeight - height} blocks left behind, stop updating cells.`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
-        await notifyWithThrottle(this.logger, 'tip-height', TIME_1_M * 10, 'The CKB node is ${server.tipHeight - height} blocks left behind.', 'Restart the CKB node.')
+        // await notifyWithThrottle(this.logger, 'tip-height', TIME_1_M * 10, 'The CKB node is ${server.tipHeight - height} blocks left behind.', 'Restart the CKB node.')
         return
       }
 
@@ -264,7 +264,6 @@ export async function updateController (argv: Arguments<{ type: string }>) {
         signedRawTx = ckb.signTransaction(privateKey)(rawTx)
       } catch (e) {
         logger.error(`Sign transaction failed.(${e})`, { cell_data: cellData, waited_blocks: waitedBlocks })
-        await notifyWithThrottle(logger, 'sign-transaction-error', TIME_1_M * 10, `Sign transaction failed.(${e})`, 'Try to find out what the error message means it mostly because the private key is not match.')
         return
       }
 
@@ -280,7 +279,7 @@ export async function updateController (argv: Arguments<{ type: string }>) {
             case -302:
             case -1107:
               // These error are caused by cell occupation, could retry automatically.
-              logger.warn(`Update cell failed.(${data.code}: ${data.message})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
+              logger.info(`Update cell failed, but can be ignored safely.(${data.code}: ${data.message})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
               return
             case -301:
               // Suppress the occupation error
@@ -436,11 +435,13 @@ class Server extends EventEmitter {
     const now = Date.now()
     const status = this.heartbeatStatus
 
-    clearTimeout(status.timer)
-    status.timer = setTimeout(async () => {
-      await notifyWithThrottle(this.logger, 'heartbeat', TIME_1_M * 10, 'Connection timeout.', 'Check if CKB node is offline and the get_tip_header interface is reachable.')
-      this.ws.terminate()
-    }, TIME_30_S)
+    // ⚠️ Temporarily disable the notification, it is now only used for debugging.
+    // The reason is that the server is now monitored by scripts/ckb-node-monit.mjs, this script will
+    // clearTimeout(status.timer)
+    // status.timer = setTimeout(async () => {
+    //   await notifyWithThrottle(this.logger, 'heartbeat', TIME_1_M * 10, 'Connection timeout.', 'Check if CKB node is offline and the get_tip_header interface is reachable.')
+    //   this.ws.terminate()
+    // }, TIME_30_S)
 
     // ⚠️ Different method may has performance issue, ensure testing on cloud
     this.ws.send(`{ "id": "heartbeat-${status.id}", "jsonrpc": "2.0", "method": "get_tip_header", "params": [] }`)
@@ -470,7 +471,8 @@ class Server extends EventEmitter {
       }
       status.history.push({ id: status.id, tip_height: tipHeight, at: now })
     } catch (e) {
-      await notifyWithThrottle(this.logger, 'get-tip-height-error', TIME_1_M * 10, `Get tip height failed.(${e})`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
+      // await notifyWithThrottle(this.logger, 'get-tip-height-error', TIME_1_M * 10, `Get tip height failed.(${e})`, 'Check if CKB node is offline and the get_tip_header interface is reachable.')
+      this.logger.error(`Get tip height failed.(${e})`)
     }
 
     status.id++
