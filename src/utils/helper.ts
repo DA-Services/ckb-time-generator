@@ -173,38 +173,10 @@ export async function notifyWithThrottle(logger: Logger, source: string, duratio
   await notifyLark(logger, msg, how_to_fix)
 }
 
-export async function notifyLark(logger: Logger, msg: string, how_to_fix = '', should_at = true) {
+export async function notifyLark(logger: Logger, msg: string, how_to_fix = '', _should_at = true) {
   try {
-    const content: any[] = [
-      [{tag: 'text', un_escaped: true, text: `server: ${getCurrentServer()}`}],
-      [{tag: 'text', un_escaped: true, text: `ckb_ws_url: ${config.CkbWsUrl}`}],
-      [{tag: 'text', un_escaped: true, text: `reason: ${msg}`}],
-      [{tag: 'text', un_escaped: true, text: `how to fix: ${how_to_fix}`}],
-    ]
-    if (process.env.NODE_ENV === 'mainnet' && should_at) {
-      content.push([{tag: 'at', user_id: 'all'}])
-      const res = await fetch(`https://open.larksuite.com/open-apis/bot/v2/hook/${config.LarkApiKey}`, {
-        method: 'post',
-        body: JSON.stringify({
-          email: 'xieaolin@gmail.com',
-          msg_type: 'post',
-          content: {
-            post: {
-              zh_cn: {
-                title: `=== THQ Node 服务告警 (${process.env.NODE_ENV}) ===`,
-                content,
-              }
-            },
-          }
-        })
-      })
-
-      if (res.status >= 400) {
-        console.error(`helper: send Lark notify failed, response ${res.status} ${res.statusText}`)
-      }
-    } else {
-      logger.warn(`msg: ${msg}, how_to_fix: ${how_to_fix}`)
-    }
+    // TODO: Remove lark notification when the new system is stable.
+    logger.warn(`msg: ${msg}, how_to_fix: ${how_to_fix}`)
   } catch (e) {
     console.error('helper: send Lark notify failed:', e)
   }
