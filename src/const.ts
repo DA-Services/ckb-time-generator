@@ -41,3 +41,5 @@ export const EXCHANGES: Exchange[] = [
   new ascendex({ agent }),
   new kucoin({ agent })
 ]
+
+export const UNKNOWN_OUT_POINT_REG = /Unknown\(OutPoint\((0x[0-9a-fA-F]+)\)\)/

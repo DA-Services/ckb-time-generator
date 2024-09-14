@@ -4,7 +4,7 @@ import { Logger } from 'winston'
 import EventEmitter from 'events'
 
 import config from '../config.js'
-import { SinceFlag, SUM_OF_INFO_CELLS, TIME_1_M, TIME_30_S, TIME_5_S, THEORETIC_BLOCK_1_M } from '../const.js'
+import { SinceFlag, SUM_OF_INFO_CELLS, TIME_1_M, TIME_30_S, TIME_5_S, THEORETIC_BLOCK_1_M, UNKNOWN_OUT_POINT_REG } from '../const.js'
 import { rootLogger } from '../log.js'
 import {
   collectInputs,
@@ -281,9 +281,22 @@ export async function updateController (argv: Arguments<{ type: string }>) {
               // These error are caused by cell occupation, could retry automatically.
               logger.info(`Update cell failed, but can be ignored safely.(${data.code}: ${data.message})`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
               return
-            case -301:
+            case -301: {
               // Suppress the occupation error
+
+              // But if the occupated cell is a cell_dep, the config need to be updated manually.
+              const match = UNKNOWN_OUT_POINT_REG.exec(data.message)
+              if (match.length > 0) {
+                txHash = match[1].slice(0, 66)
+                config.CellDeps.forEach((dep) => {
+                  if (dep.outPoint.txHash === txHash) {
+                    logger.error(`Cell_dep[${dep.outPoint.txHash}-${dep.outPoint.index}] has been spent, the config need to be updated manually.`, { cell_data: cellData, tx_hash: txHash, waited_blocks: waitedBlocks })
+                  }
+                })
+              }
+
               return
+            }
             case -1111:
               // Suppress the RBF rejection error
               return
