@@ -5,10 +5,10 @@ Env: mainnet
 
 CellDeps:
   # index-state-cell-type
-  - outPoint: { txHash: '0xe9116d651c371662b6e29e2102422e23f90656b8619df82c48b782ff4db43a37', index: '0x0' }
+  - outPoint: { txHash: '0x5e7a84fc58274e95dad82364e89d5062fe8085ed54a7ea246f60b6e5dac3e545', index: '0x0' }
     depType: 'code'
   # info-cell-type
-  - outPoint: { txHash: '0x5fe11c5033f7494667f23ae8759762f196105eb3240d26a65f805831b4b26a16', index: '0x0' }
+  - outPoint: { txHash: '0x46d1665b650d75462ace68638c57d513f331f5456d6d9cd9c4b7f965d4bd884f', index: '0x0' }
     depType: 'code'
   # ckb signall lock
   - outPoint: { txHash: '0x71a7ba8fc96349fea0ed3a5c47992e3b4084b031a42264a018e0072e8172e46c', index: '0x0' }
