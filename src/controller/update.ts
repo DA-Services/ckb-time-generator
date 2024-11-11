@@ -400,6 +400,17 @@ class Server extends EventEmitter {
       this.logger.debug(`Received new block[${BigInt(result.number)}]`)
 
       const status = this.eventStatus
+
+      const now = Date.now()
+      if (status.history.length > 0 &&now - status.history[status.history.length - 1].receivedAt < 5000) {
+        // Ignore the message if it is received too frequently, this is a common case when the node is syncing.
+        return;
+      }
+      status.history.push({ receivedAt: now })
+      if (status.history.length > 10) {
+        status.history.shift()
+      }
+
       clearTimeout(status.checkTipHeight_notify)
       clearTimeout(status.checkTipHeight_warn)
 
